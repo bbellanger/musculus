@@ -10,3 +10,20 @@ Musculus is a python Django framework based interface for mice colony management
 5. Run migrations: `python manage.py migrate`
 6. Create a superuser: `python manage.py createsuperuser`
 7. Run: `python manage.py runserver`
+
+### Structure
+
+```bash
+musculus/
+├── settings/
+│   ├── settings.py
+│   └── urls.py
+├── colony/
+│   ├── models.py        (Mouse, CoatColor, Protocol, MatingPair)
+│   ├── admin.py         (MatingPairAdmin with sex filtering, is_active display)
+│   └── urls.py
+├── templates/
+│   └── registration/
+│       └── login.html
+└── manage.py
+```
