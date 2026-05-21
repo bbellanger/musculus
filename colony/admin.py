@@ -19,6 +19,13 @@ class MatingPairAdmin(admin.ModelAdmin):
     list_filter = ('end_date',)
     search_fields = ('male__tag', 'female__tag')
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'male':
+            kwargs['queryset'] = Mouse.objects.filter(sex='M')
+        if db_field.name == 'female':
+            kwargs['queryset'] = Mouse.objects.filter(sex='F')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     # `is_active` is a `@proprty` not a database field
     # sort it in the admin list anyway
     @admin.display(boolean=True, description='Active')
