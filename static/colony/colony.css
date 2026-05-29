@@ -1,0 +1,405 @@
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Design tokens ── */
+:root {
+  --bg:           #f4f1eb;
+  --surface:      #fdfcf9;
+  --surface2:     #eeeae0;
+  --border:       #d6d0c0;
+  --border-dark:  #b8b09a;
+  --text:         #1a1714;
+  --muted:        #6b6456;
+  --hint:         #9e9585;
+  --accent:       #2d6a4f;
+  --accent-light: #d8eee4;
+  --accent2:      #c45c1a;
+  --accent2-light:#fdebd8;
+  --danger:       #c0392b;
+  --danger-light: #fdecea;
+  --tag-bg:       #e8e3d6;
+  --het-bg:       #cce5d8;
+  --hom-bg:       #ffe3cc;
+  --wt-bg:        #e2e2e2;
+  --radius:       6px;
+  --shadow:       0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+}
+
+/* ── Base ── */
+html, body {
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Header ── */
+header {
+  background: var(--text);
+  color: #f4f1eb;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #f4f1eb;
+  text-decoration: none;
+}
+.logo span { color: #6db892; }
+header .sep { flex: 1; }
+.header-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: rgba(244,241,235,0.4);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── Layout ── */
+.wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+}
+
+/* ── Tab Nav ── */
+.tab-nav {
+  display: flex;
+  gap: 2px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 28px;
+}
+.tab-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  font-weight: 400;
+  padding: 10px 18px 11px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+  text-transform: uppercase;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.tab-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: var(--surface2);
+  border-radius: 50%;
+  font-size: 10px;
+  margin-left: 6px;
+  vertical-align: middle;
+  color: var(--muted);
+}
+.tab-btn.active .tab-indicator {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+/* ── Tab Panels ── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeIn 0.18s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Panel Header ── */
+.panel-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.panel-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+}
+.panel-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+}
+.panel-actions { margin-left: auto; display: flex; gap: 8px; }
+
+/* ── Buttons ── */
+.btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.12s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: #235a41; }
+.btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
+.btn-secondary:hover { background: var(--surface2); }
+.btn-danger { background: var(--danger-light); color: var(--danger); border-color: #f5b7b1; }
+.btn-sm   { font-size: 12px; padding: 4px 10px; }
+.btn-icon { padding: 6px 9px; font-size: 14px; }
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+/* ── Data Table ── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table thead th {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface2);
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1.5px solid var(--border);
+  white-space: nowrap;
+}
+.data-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+.data-table tbody tr:last-child { border-bottom: none; }
+.data-table tbody tr:hover { background: #f8f6f0; }
+.data-table td { padding: 11px 14px; vertical-align: middle; font-size: 13.5px; }
+.data-table td.mono { font-family: 'Space Mono', monospace; font-size: 12px; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-m        { background: #dbeafe; color: #1d4ed8; }
+.badge-f        { background: #fce7f3; color: #9d174d; }
+.badge-active   { background: var(--accent-light); color: var(--accent); }
+.badge-inactive { background: var(--surface2); color: var(--muted); }
+.badge-het      { background: var(--het-bg); color: #1a5c35; }
+.badge-hom      { background: var(--hom-bg); color: #7c3007; }
+.badge-wt       { background: var(--wt-bg); color: #444; }
+
+.genotype-list { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* ── Action cell ── */
+.actions-cell { display: flex; gap: 5px; }
+
+/* ── Inline Edit Row ── */
+.edit-row { display: none; }
+.edit-row.open { display: table-row; }
+.edit-row td {
+  background: #f0ede4;
+  border-bottom: 2px solid var(--accent);
+  padding: 16px 14px;
+}
+
+/* ── Form Grid ── */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px 16px;
+}
+.form-grid.wide { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.field-input,
+.field-select {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color 0.12s;
+}
+.field-input:focus,
+.field-select:focus { outline: none; border-color: var(--accent); }
+.field-input[readonly] {
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: default;
+}
+.form-actions { grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 4px; }
+
+/* ── Genotype inline table ── */
+.genotype-inline { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.genotype-inline th {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--hint);
+  padding: 5px 8px;
+  text-align: left;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.genotype-inline td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.genotype-inline tr:last-child td { border-bottom: none; }
+
+.genotype-wrap {
+  grid-column: 1 / -1;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.genotype-wrap-header {
+  padding: 8px 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── Computed-field label ── */
+.computed-label {
+  font-size: 10px;
+  font-family: 'Space Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--hint);
+  margin-left: 4px;
+}
+
+/* ── Empty state ── */
+.empty-row td {
+  text-align: center;
+  padding: 40px;
+  color: var(--hint);
+  font-style: italic;
+}
+
+/* ── Toolbar (search + filters) ── */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.search-box { position: relative; flex: 1; min-width: 200px; }
+.search-box input {
+  width: 100%;
+  padding: 7px 10px 7px 32px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px;
+  background: var(--surface);
+  color: var(--text);
+}
+.search-box input:focus { outline: none; border-color: var(--accent); }
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--hint);
+  font-size: 13px;
+}
+.filter-select {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 7px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+.filter-select:focus { outline: none; border-color: var(--accent); }
+
+/* ── Notes text (truncated) ── */
+.notes-text {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ── Derived info chip ── */
+.derived-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: var(--surface2);
+  font-size: 11px;
+  color: var(--muted);
+}
+.derived-chip .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ── Django template notice banner ── */
+.django-note {
+  background: #fffbea;
+  border: 1.5px solid #f0d060;
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  font-size: 12.5px;
+  color: #7a5f00;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.django-note code {
+  font-family: 'Space Mono', monospace;
+  background: rgba(0,0,0,0.07);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11px;
+}

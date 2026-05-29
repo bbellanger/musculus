@@ -1,0 +1,732 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Musculus — Colony Records</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'colony/colony.css' %}" />
+  <script src="{% static 'colony/colony.js' %}"></script>
+
+</head>
+<body>
+
+<header>
+  <a class="logo" href="#">mus<span>culus</span></a>
+  <div class="sep"></div>
+  <span class="header-tag">Colony Records — Template</span>
+</header>
+
+<div class="wrapper">
+
+  <div class="django-note">
+    <span>⚠️</span>
+    <div>
+      Computed fields marked <code>@property</code> are read-only — never stored in the DB.
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('mouse', this)">
+      Mouse <span class="tab-indicator" id="cnt-mouse">4</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('cage', this)">
+      Cage <span class="tab-indicator" id="cnt-cage">3</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('matingpair', this)">
+      Mating Pair <span class="tab-indicator" id="cnt-matingpair">2</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('litter', this)">
+      Litter <span class="tab-indicator" id="cnt-litter">2</span>
+    </button>
+  </nav>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!--  MOUSE TAB                                 -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="tab-panel active" id="tab-mouse">
+    <div class="panel-header">
+      <h2 class="panel-title">Mouse</h2>
+      <span class="panel-subtitle">Individual animal records</span>
+      <div class="panel-actions">
+        <button class="btn btn-primary btn-sm" onclick="addRow('mouse-tbody', buildMouseEditRow())">＋ Add Mouse</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="Search tag, phenotype…" oninput="filterTable('mouse-tbody', this.value)" />
+      </div>
+      <select class="filter-select" onchange="filterTableBySex(this.value)">
+        <option value="">All sexes</option>
+        <option value="M">Male</option>
+        <option value="F">Female</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Tag</th>
+            <th>Sex</th>
+            <th>Alt ID</th>
+            <th>DOB</th>
+            <th>Wean <span class="computed-label">@prop</span></th>
+            <th>Mature <span class="computed-label">@prop</span></th>
+            <th>MouseLine</th>
+            <th>Coat</th>
+            <th>Genotypes</th>
+            <th>Protocol</th>
+            <th>Owner</th>
+            <th>Cage</th>
+            <th>Phenotype</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="mouse-tbody">
+
+          <!-- Sample row 1 -->
+          <tr class="data-row" data-id="m1" data-sex="M">
+            <td class="mono">M0001</td>
+            <td><span class="badge badge-m">M</span></td>
+            <td class="mono">LR</td>
+            <td class="mono">2026-01-10</td>
+            <td class="mono" title="DOB + 21 days">2026-01-31</td>
+            <td class="mono" title="DOB + 42 days">2026-02-21</td>
+            <td>Cre ; fl/fl</td>
+            <td>Agouti</td>
+            <td>
+              <div class="genotype-list">
+                <span class="badge badge-het">Cre HET</span>
+                <span class="badge badge-hom">fl/fl HOM</span>
+              </div>
+            </td>
+            <td>P001</td>
+            <td>jsmith</td>
+            <td class="mono">C0001</td>
+            <td class="notes-text">Normal gait</td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn btn-secondary btn-sm btn-icon" title="Edit" onclick="toggleEdit('m1')">✎</button>
+                <button class="btn btn-danger btn-sm btn-icon" title="Delete">✕</button>
+              </div>
+            </td>
+          </tr>
+          <tr class="edit-row" id="edit-m1">
+            <td colspan="14">
+              <div class="form-grid wide">
+                <div class="field-group">
+                  <label class="field-label">Tag <span class="computed-label">auto</span></label>
+                  <input class="field-input" value="M0001" readonly />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Sex</label>
+                  <select class="field-select">
+                    <option value="M" selected>Male</option>
+                    <option value="F">Female</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Alt ID</label>
+                  <select class="field-select">
+                    <option>—</option>
+                    <option selected>LR</option>
+                    <option>L</option><option>R</option><option>LL</option><option>RR</option>
+                    <option>LLR</option><option>LRR</option><option>LLRR</option>
+                    <option>LLL</option><option>RRR</option><option>LLLR</option>
+                    <option>LLLRR</option><option>LRRR</option><option>LLRRR</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">DOB</label>
+                  <input type="date" class="field-input" value="2026-01-10" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Wean date <span class="computed-label">@prop</span></label>
+                  <input class="field-input" value="2026-01-31" readonly title="DOB + 21 days" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Mature date <span class="computed-label">@prop</span></label>
+                  <input class="field-input" value="2026-02-21" readonly title="DOB + 42 days" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">MouseLine</label>
+                  <select class="field-select">
+                    <option>Cre ; fl/fl</option>
+                    <option>Cre</option>
+                    <option>fl/fl</option>
+                    <option>—</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Coat Color</label>
+                  <select class="field-select">
+                    <option>Agouti</option>
+                    <option>Black</option>
+                    <option>Albino</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Protocol</label>
+                  <select class="field-select">
+                    <option>P001</option>
+                    <option>P002</option>
+                    <option>—</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Owner</label>
+                  <select class="field-select">
+                    <option>jsmith</option>
+                    <option>adoe</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Cage</label>
+                  <select class="field-select">
+                    <option>C0001</option>
+                    <option>C0002</option>
+                    <option>—</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Phenotype</label>
+                  <input class="field-input" value="Normal gait" />
+                </div>
+                <!-- Genotype inline -->
+                <div class="genotype-wrap">
+                  <div class="genotype-wrap-header">
+                    Genotypes (MouseGenotype)
+                    <button class="btn btn-secondary btn-sm" onclick="addGenotypeRow(this)">＋ Add</button>
+                  </div>
+                  <table class="genotype-inline">
+                    <thead>
+                      <tr>
+                        <th>Tag / Allele</th>
+                        <th>Zygosity</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><select class="field-select" style="width:100%"><option>Cre</option><option>fl/fl</option><option>Rosa26</option></select></td>
+                        <td><select class="field-select" style="width:100%"><option value="HET" selected>HET</option><option value="HOM">HOM</option><option value="WT">WT</option></select></td>
+                        <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">✕</button></td>
+                      </tr>
+                      <tr>
+                        <td><select class="field-select" style="width:100%"><option>Cre</option><option value="fl/fl" selected>fl/fl</option><option>Rosa26</option></select></td>
+                        <td><select class="field-select" style="width:100%"><option value="HET">HET</option><option value="HOM" selected>HOM</option><option value="WT">WT</option></select></td>
+                        <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">✕</button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!-- Actions -->
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-sm">Save</button>
+                  <button class="btn btn-secondary btn-sm" onclick="toggleEdit('m1')">Cancel</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Sample row 2 -->
+          <tr class="data-row" data-id="m2" data-sex="F">
+            <td class="mono">M0002</td>
+            <td><span class="badge badge-f">F</span></td>
+            <td class="mono">—</td>
+            <td class="mono">2026-01-10</td>
+            <td class="mono">2026-01-31</td>
+            <td class="mono">2026-02-21</td>
+            <td>Cre</td>
+            <td>Black</td>
+            <td>
+              <div class="genotype-list">
+                <span class="badge badge-het">Cre HET</span>
+                <span class="badge badge-wt">fl/fl WT</span>
+              </div>
+            </td>
+            <td>P001</td>
+            <td>jsmith</td>
+            <td class="mono">C0001</td>
+            <td class="notes-text">—</td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn btn-secondary btn-sm btn-icon" title="Edit" onclick="toggleEdit('m2')">✎</button>
+                <button class="btn btn-danger btn-sm btn-icon" title="Delete">✕</button>
+              </div>
+            </td>
+          </tr>
+          <tr class="edit-row" id="edit-m2">
+            <td colspan="14">
+              <div class="form-grid wide">
+                <div class="field-group">
+                  <label class="field-label">Tag <span class="computed-label">auto</span></label>
+                  <input class="field-input" value="M0002" readonly />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Sex</label>
+                  <select class="field-select"><option>Male</option><option selected>Female</option></select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Alt ID</label>
+                  <select class="field-select"><option selected>—</option><option>L</option><option>R</option></select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">DOB</label>
+                  <input type="date" class="field-input" value="2026-01-10" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Wean <span class="computed-label">@prop</span></label>
+                  <input class="field-input" value="2026-01-31" readonly />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Mature <span class="computed-label">@prop</span></label>
+                  <input class="field-input" value="2026-02-21" readonly />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">MouseLine</label>
+                  <select class="field-select"><option selected>Cre</option><option>Cre ; fl/fl</option><option>—</option></select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Coat Color</label>
+                  <select class="field-select"><option>Agouti</option><option selected>Black</option></select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Protocol</label>
+                  <select class="field-select"><option selected>P001</option><option>—</option></select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Owner</label>
+                  <select class="field-select"><option selected>jsmith</option></select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Cage</label>
+                  <select class="field-select"><option selected>C0001</option><option>C0002</option></select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Phenotype</label>
+                  <input class="field-input" value="" placeholder="Free text…" />
+                </div>
+                <div class="genotype-wrap">
+                  <div class="genotype-wrap-header">Genotypes (MouseGenotype) <button class="btn btn-secondary btn-sm" onclick="addGenotypeRow(this)">＋ Add</button></div>
+                  <table class="genotype-inline">
+                    <thead><tr><th>Tag / Allele</th><th>Zygosity</th><th></th></tr></thead>
+                    <tbody>
+                      <tr>
+                        <td><select class="field-select" style="width:100%"><option selected>Cre</option><option>fl/fl</option></select></td>
+                        <td><select class="field-select" style="width:100%"><option selected>HET</option><option>HOM</option><option>WT</option></select></td>
+                        <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">✕</button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-sm">Save</button>
+                  <button class="btn btn-secondary btn-sm" onclick="toggleEdit('m2')">Cancel</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Sample rows 3 & 4 (condensed, no edit rows for brevity) -->
+          <tr class="data-row" data-id="m3" data-sex="M">
+            <td class="mono">M0003</td>
+            <td><span class="badge badge-m">M</span></td>
+            <td class="mono">L</td>
+            <td class="mono">2025-11-05</td>
+            <td class="mono">2025-11-26</td>
+            <td class="mono">2025-12-17</td>
+            <td>fl/fl</td>
+            <td>Albino</td>
+            <td><div class="genotype-list"><span class="badge badge-hom">fl/fl HOM</span></div></td>
+            <td>P002</td>
+            <td>adoe</td>
+            <td class="mono">C0002</td>
+            <td class="notes-text">Limb clasping</td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('m3')">✎</button>
+                <button class="btn btn-danger btn-sm btn-icon">✕</button>
+              </div>
+            </td>
+          </tr>
+          <tr class="edit-row" id="edit-m3">
+            <td colspan="14">
+              <div class="form-grid wide">
+                <div class="field-group"><label class="field-label">Tag</label><input class="field-input" value="M0003" readonly /></div>
+                <div class="field-group"><label class="field-label">Sex</label><select class="field-select"><option selected>Male</option><option>Female</option></select></div>
+                <div class="field-group"><label class="field-label">Alt ID</label><select class="field-select"><option selected>L</option><option>R</option></select></div>
+                <div class="field-group"><label class="field-label">DOB</label><input type="date" class="field-input" value="2025-11-05"/></div>
+                <div class="field-group"><label class="field-label">Wean <span class="computed-label">@prop</span></label><input class="field-input" value="2025-11-26" readonly /></div>
+                <div class="field-group"><label class="field-label">Mature <span class="computed-label">@prop</span></label><input class="field-input" value="2025-12-17" readonly /></div>
+                <div class="field-group"><label class="field-label">MouseLine</label><select class="field-select"><option>Cre</option><option selected>fl/fl</option></select></div>
+                <div class="field-group"><label class="field-label">Coat Color</label><select class="field-select"><option>Agouti</option><option>Black</option><option selected>Albino</option></select></div>
+                <div class="field-group"><label class="field-label">Protocol</label><select class="field-select"><option>P001</option><option selected>P002</option></select></div>
+                <div class="field-group"><label class="field-label">Owner</label><select class="field-select"><option>jsmith</option><option selected>adoe</option></select></div>
+                <div class="field-group"><label class="field-label">Cage</label><select class="field-select"><option>C0001</option><option selected>C0002</option></select></div>
+                <div class="field-group"><label class="field-label">Phenotype</label><input class="field-input" value="Limb clasping" /></div>
+                <div class="genotype-wrap">
+                  <div class="genotype-wrap-header">Genotypes<button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="addGenotypeRow(this)">＋</button></div>
+                  <table class="genotype-inline"><thead><tr><th>Tag</th><th>Zygosity</th><th></th></tr></thead>
+                  <tbody><tr>
+                    <td><select class="field-select" style="width:100%"><option>Cre</option><option selected>fl/fl</option></select></td>
+                    <td><select class="field-select" style="width:100%"><option>HET</option><option selected>HOM</option><option>WT</option></select></td>
+                    <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">✕</button></td>
+                  </tr></tbody></table>
+                </div>
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-sm">Save</button>
+                  <button class="btn btn-secondary btn-sm" onclick="toggleEdit('m3')">Cancel</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <tr class="data-row" data-id="m4" data-sex="F">
+            <td class="mono">M0004</td>
+            <td><span class="badge badge-f">F</span></td>
+            <td class="mono">RR</td>
+            <td class="mono">2025-11-05</td>
+            <td class="mono">2025-11-26</td>
+            <td class="mono">2025-12-17</td>
+            <td>—</td>
+            <td>Agouti</td>
+            <td><div class="genotype-list"><span class="badge badge-wt">Cre WT</span></div></td>
+            <td>—</td>
+            <td>adoe</td>
+            <td class="mono">C0003</td>
+            <td class="notes-text">—</td>
+            <td>
+              <div class="actions-cell">
+                <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('m4')">✎</button>
+                <button class="btn btn-danger btn-sm btn-icon">✕</button>
+              </div>
+            </td>
+          </tr>
+          <tr class="edit-row" id="edit-m4">
+            <td colspan="14"><div class="form-grid wide">
+              <div class="field-group"><label class="field-label">Tag</label><input class="field-input" value="M0004" readonly /></div>
+              <div class="field-group"><label class="field-label">Sex</label><select class="field-select"><option>Male</option><option selected>Female</option></select></div>
+              <div class="field-group"><label class="field-label">Alt ID</label><select class="field-select"><option>—</option><option selected>RR</option></select></div>
+              <div class="field-group"><label class="field-label">DOB</label><input type="date" class="field-input" value="2025-11-05"/></div>
+              <div class="field-group"><label class="field-label">Wean <span class="computed-label">@prop</span></label><input class="field-input" value="2025-11-26" readonly /></div>
+              <div class="field-group"><label class="field-label">Mature <span class="computed-label">@prop</span></label><input class="field-input" value="2025-12-17" readonly /></div>
+              <div class="field-group"><label class="field-label">MouseLine</label><select class="field-select"><option selected>—</option><option>Cre</option></select></div>
+              <div class="field-group"><label class="field-label">Coat</label><select class="field-select"><option selected>Agouti</option></select></div>
+              <div class="field-group"><label class="field-label">Protocol</label><select class="field-select"><option selected>—</option></select></div>
+              <div class="field-group"><label class="field-label">Owner</label><select class="field-select"><option>jsmith</option><option selected>adoe</option></select></div>
+              <div class="field-group"><label class="field-label">Cage</label><select class="field-select"><option>C0001</option><option>C0002</option><option selected>C0003</option></select></div>
+              <div class="field-group"><label class="field-label">Phenotype</label><input class="field-input" value="" /></div>
+              <div class="form-actions">
+                <button class="btn btn-primary btn-sm">Save</button>
+                <button class="btn btn-secondary btn-sm" onclick="toggleEdit('m4')">Cancel</button>
+              </div>
+            </div></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!--  CAGE TAB                                  -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-cage">
+    <div class="panel-header">
+      <h2 class="panel-title">Cage</h2>
+      <span class="panel-subtitle">Physical housing units</span>
+      <div class="panel-actions">
+        <button class="btn btn-primary btn-sm">＋ Add Cage</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="Search cage ID, location…" oninput="filterTable('cage-tbody', this.value)" />
+      </div>
+    </div>
+
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Cage ID <span class="computed-label">auto</span></th>
+            <th>Location</th>
+            <th>Mating Pair</th>
+            <th>Name (MouseLine) <span class="computed-label">@prop</span></th>
+            <th>Mice count <span class="computed-label">derived</span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="cage-tbody">
+
+          <tr class="data-row" data-id="c1">
+            <td class="mono">C0001</td>
+            <td class="mono">R1-A3</td>
+            <td class="mono">MP001</td>
+            <td><span class="derived-chip"><span class="dot"></span>Cre ; fl/fl</span></td>
+            <td>2</td>
+            <td><div class="actions-cell">
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('c1')">✎</button>
+              <button class="btn btn-danger btn-sm btn-icon">✕</button>
+            </div></td>
+          </tr>
+          <tr class="edit-row" id="edit-c1">
+            <td colspan="6"><div class="form-grid">
+              <div class="field-group"><label class="field-label">Cage ID <span class="computed-label">auto</span></label><input class="field-input" value="C0001" readonly /></div>
+              <div class="field-group"><label class="field-label">Location</label><input class="field-input" value="R1-A3" /></div>
+              <div class="field-group"><label class="field-label">Mating Pair</label><select class="field-select"><option selected>MP001</option><option>MP002</option><option>—</option></select></div>
+              <div class="field-group"><label class="field-label">Name <span class="computed-label">@prop — derived from parents' genotypes</span></label><input class="field-input" value="Cre ; fl/fl" readonly /></div>
+              <div class="form-actions"><button class="btn btn-primary btn-sm">Save</button><button class="btn btn-secondary btn-sm" onclick="toggleEdit('c1')">Cancel</button></div>
+            </div></td>
+          </tr>
+
+          <tr class="data-row" data-id="c2">
+            <td class="mono">C0002</td>
+            <td class="mono">R1-B1</td>
+            <td class="mono">MP002</td>
+            <td><span class="derived-chip"><span class="dot"></span>fl/fl</span></td>
+            <td>1</td>
+            <td><div class="actions-cell">
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('c2')">✎</button>
+              <button class="btn btn-danger btn-sm btn-icon">✕</button>
+            </div></td>
+          </tr>
+          <tr class="edit-row" id="edit-c2">
+            <td colspan="6"><div class="form-grid">
+              <div class="field-group"><label class="field-label">Cage ID</label><input class="field-input" value="C0002" readonly /></div>
+              <div class="field-group"><label class="field-label">Location</label><input class="field-input" value="R1-B1" /></div>
+              <div class="field-group"><label class="field-label">Mating Pair</label><select class="field-select"><option>MP001</option><option selected>MP002</option><option>—</option></select></div>
+              <div class="field-group"><label class="field-label">Name <span class="computed-label">@prop</span></label><input class="field-input" value="fl/fl" readonly /></div>
+              <div class="form-actions"><button class="btn btn-primary btn-sm">Save</button><button class="btn btn-secondary btn-sm" onclick="toggleEdit('c2')">Cancel</button></div>
+            </div></td>
+          </tr>
+
+          <tr class="data-row" data-id="c3">
+            <td class="mono">C0003</td>
+            <td class="mono">R2-A1</td>
+            <td class="mono">—</td>
+            <td><span class="derived-chip" style="color:var(--hint)">— no pair</span></td>
+            <td>1</td>
+            <td><div class="actions-cell">
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('c3')">✎</button>
+              <button class="btn btn-danger btn-sm btn-icon">✕</button>
+            </div></td>
+          </tr>
+          <tr class="edit-row" id="edit-c3">
+            <td colspan="6"><div class="form-grid">
+              <div class="field-group"><label class="field-label">Cage ID</label><input class="field-input" value="C0003" readonly /></div>
+              <div class="field-group"><label class="field-label">Location</label><input class="field-input" value="R2-A1" /></div>
+              <div class="field-group"><label class="field-label">Mating Pair</label><select class="field-select"><option selected>—</option><option>MP001</option><option>MP002</option></select></div>
+              <div class="field-group"><label class="field-label">Name <span class="computed-label">@prop</span></label><input class="field-input" value="" placeholder="Derived from mating pair" readonly /></div>
+              <div class="form-actions"><button class="btn btn-primary btn-sm">Save</button><button class="btn btn-secondary btn-sm" onclick="toggleEdit('c3')">Cancel</button></div>
+            </div></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!--  MATING PAIR TAB                           -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-matingpair">
+    <div class="panel-header">
+      <h2 class="panel-title">Mating Pair</h2>
+      <span class="panel-subtitle">Breeding records</span>
+      <div class="panel-actions">
+        <button class="btn btn-primary btn-sm">＋ Add Pair</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="Search by tag…" oninput="filterTable('mp-tbody', this.value)" />
+      </div>
+      <select class="filter-select">
+        <option value="">All</option>
+        <option value="active">Active only</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Male</th>
+            <th>Female</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Active <span class="computed-label">@prop</span></th>
+            <th>Owner <span class="computed-label">@prop ← female</span></th>
+            <th>Litters</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="mp-tbody">
+
+          <tr class="data-row" data-id="mp1">
+            <td class="mono">M0001</td>
+            <td class="mono">M0002</td>
+            <td class="mono">2026-01-15</td>
+            <td class="mono">—</td>
+            <td><span class="badge badge-active">● Active</span></td>
+            <td>jsmith</td>
+            <td>2</td>
+            <td><div class="actions-cell">
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('mp1')">✎</button>
+              <button class="btn btn-danger btn-sm btn-icon">✕</button>
+            </div></td>
+          </tr>
+          <tr class="edit-row" id="edit-mp1">
+            <td colspan="8"><div class="form-grid">
+              <div class="field-group"><label class="field-label">Male (tag)</label><select class="field-select"><option selected>M0001</option><option>M0003</option></select></div>
+              <div class="field-group"><label class="field-label">Female (tag)</label><select class="field-select"><option selected>M0002</option><option>M0004</option></select></div>
+              <div class="field-group"><label class="field-label">Start Date</label><input type="date" class="field-input" value="2026-01-15" /></div>
+              <div class="field-group"><label class="field-label">End Date <span class="computed-label">null = active</span></label><input type="date" class="field-input" /></div>
+              <div class="field-group"><label class="field-label">Active <span class="computed-label">@prop: end_date is None</span></label><input class="field-input" value="Yes" readonly /></div>
+              <div class="field-group"><label class="field-label">Owner <span class="computed-label">@prop ← female.owner</span></label><input class="field-input" value="jsmith" readonly /></div>
+              <div class="form-actions"><button class="btn btn-primary btn-sm">Save</button><button class="btn btn-secondary btn-sm" onclick="toggleEdit('mp1')">Cancel</button></div>
+            </div></td>
+          </tr>
+
+          <tr class="data-row" data-id="mp2">
+            <td class="mono">M0003</td>
+            <td class="mono">M0004</td>
+            <td class="mono">2025-11-20</td>
+            <td class="mono">2026-04-10</td>
+            <td><span class="badge badge-inactive">Inactive</span></td>
+            <td>adoe</td>
+            <td>1</td>
+            <td><div class="actions-cell">
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('mp2')">✎</button>
+              <button class="btn btn-danger btn-sm btn-icon">✕</button>
+            </div></td>
+          </tr>
+          <tr class="edit-row" id="edit-mp2">
+            <td colspan="8"><div class="form-grid">
+              <div class="field-group"><label class="field-label">Male</label><select class="field-select"><option>M0001</option><option selected>M0003</option></select></div>
+              <div class="field-group"><label class="field-label">Female</label><select class="field-select"><option>M0002</option><option selected>M0004</option></select></div>
+              <div class="field-group"><label class="field-label">Start Date</label><input type="date" class="field-input" value="2025-11-20" /></div>
+              <div class="field-group"><label class="field-label">End Date</label><input type="date" class="field-input" value="2026-04-10" /></div>
+              <div class="field-group"><label class="field-label">Active <span class="computed-label">@prop</span></label><input class="field-input" value="No" readonly /></div>
+              <div class="field-group"><label class="field-label">Owner <span class="computed-label">@prop</span></label><input class="field-input" value="adoe" readonly /></div>
+              <div class="form-actions"><button class="btn btn-primary btn-sm">Save</button><button class="btn btn-secondary btn-sm" onclick="toggleEdit('mp2')">Cancel</button></div>
+            </div></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!--  LITTER TAB                                -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-litter">
+    <div class="panel-header">
+      <h2 class="panel-title">Litter</h2>
+      <span class="panel-subtitle">Birth records &amp; pup registry</span>
+      <div class="panel-actions">
+        <button class="btn btn-primary btn-sm">＋ Add Litter</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="Search pair, notes…" oninput="filterTable('litter-tbody', this.value)" />
+      </div>
+    </div>
+
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Mating Pair</th>
+            <th>Cage <span class="computed-label">← pair</span></th>
+            <th>DOB</th>
+            <th>Owner <span class="computed-label">@prop ← female</span></th>
+            <th>Protocol <span class="computed-label">← female</span></th>
+            <th>Pup count</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="litter-tbody">
+
+          <tr class="data-row" data-id="l1">
+            <td class="mono">MP001</td>
+            <td class="mono">C0001</td>
+            <td class="mono">2026-02-18</td>
+            <td>jsmith</td>
+            <td>P001</td>
+            <td>6</td>
+            <td class="notes-text">All pups healthy</td>
+            <td><div class="actions-cell">
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('l1')">✎</button>
+              <button class="btn btn-danger btn-sm btn-icon">✕</button>
+            </div></td>
+          </tr>
+          <tr class="edit-row" id="edit-l1">
+            <td colspan="8"><div class="form-grid">
+              <div class="field-group"><label class="field-label">Mating Pair</label><select class="field-select"><option selected>MP001</option><option>MP002</option></select></div>
+              <div class="field-group"><label class="field-label">Cage <span class="computed-label">← mating_pair.cage</span></label><input class="field-input" value="C0001" readonly /></div>
+              <div class="field-group"><label class="field-label">DOB</label><input type="date" class="field-input" value="2026-02-18" /></div>
+              <div class="field-group"><label class="field-label">Owner <span class="computed-label">@prop ← female.owner</span></label><input class="field-input" value="jsmith" readonly /></div>
+              <div class="field-group"><label class="field-label">Protocol <span class="computed-label">← female.protocol</span></label><input class="field-input" value="P001" readonly /></div>
+              <div class="field-group"><label class="field-label">Notes</label><input class="field-input" value="All pups healthy" /></div>
+              <div class="field-group"><label class="field-label">Pups</label>
+                <div class="derived-chip" style="width:fit-content">6 pups — manage in Mouse tab</div>
+              </div>
+              <div class="form-actions"><button class="btn btn-primary btn-sm">Save</button><button class="btn btn-secondary btn-sm" onclick="toggleEdit('l1')">Cancel</button></div>
+            </div></td>
+          </tr>
+
+          <tr class="data-row" data-id="l2">
+            <td class="mono">MP002</td>
+            <td class="mono">C0002</td>
+            <td class="mono">2026-01-03</td>
+            <td>adoe</td>
+            <td>P002</td>
+            <td>4</td>
+            <td class="notes-text">2 stillborn</td>
+            <td><div class="actions-cell">
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('l2')">✎</button>
+              <button class="btn btn-danger btn-sm btn-icon">✕</button>
+            </div></td>
+          </tr>
+          <tr class="edit-row" id="edit-l2">
+            <td colspan="8"><div class="form-grid">
+              <div class="field-group"><label class="field-label">Mating Pair</label><select class="field-select"><option>MP001</option><option selected>MP002</option></select></div>
+              <div class="field-group"><label class="field-label">Cage</label><input class="field-input" value="C0002" readonly /></div>
+              <div class="field-group"><label class="field-label">DOB</label><input type="date" class="field-input" value="2026-01-03" /></div>
+              <div class="field-group"><label class="field-label">Owner</label><input class="field-input" value="adoe" readonly /></div>
+              <div class="field-group"><label class="field-label">Protocol</label><input class="field-input" value="P002" readonly /></div>
+              <div class="field-group"><label class="field-label">Notes</label><input class="field-input" value="2 stillborn" /></div>
+              <div class="form-actions"><button class="btn btn-primary btn-sm">Save</button><button class="btn btn-secondary btn-sm" onclick="toggleEdit('l2')">Cancel</button></div>
+            </div></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script src="{% static 'colony/colony.js' %}"></script>
+</body>
+</html>
