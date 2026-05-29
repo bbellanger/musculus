@@ -2,5 +2,26 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.index, name="index")
+    # Index
+    path('', views.index, name='index'),
+
+    # Mouse
+    path('mouse/create/',        views.mouse_create,    name='mouse_create'),
+    path('mouse/<uuid:pk>/update/', views.mouse_update, name='mouse_update'),
+    path('mouse/<uuid:pk>/delete/', views.mouse_delete, name='mouse_delete'),
+
+    # Cage
+    path('cage/create/',         views.cage_create,     name='cage_create'),
+    path('cage/<int:pk>/update/', views.cage_update,    name='cage_update'),
+    path('cage/<int:pk>/delete/', views.cage_delete,    name='cage_delete'),
+
+    # MatingPair
+    path('matingpair/create/',          views.matingpair_create, name='matingpair_create'),
+    path('matingpair/<int:pk>/update/', views.matingpair_update, name='matingpair_update'),
+    path('matingpair/<int:pk>/delete/', views.matingpair_delete, name='matingpair_delete'),
+
+    # Litter
+    path('litter/create/',          views.litter_create, name='litter_create'),
+    path('litter/<int:pk>/update/', views.litter_update, name='litter_update'),
+    path('litter/<int:pk>/delete/', views.litter_delete, name='litter_delete'),
 ]
