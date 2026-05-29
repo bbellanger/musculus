@@ -1,17 +1,32 @@
 from django.contrib import admin
-from .models import Mouse, Protocol, MouseLine, CoatColor, GenotypeTag, MatingPair
+from .models import Litter, Mouse, Protocol, MouseLine, CoatColor, GenotypeTag, MatingPair, MouseGenotype
 
 admin.site.register(Protocol)
 admin.site.register(MouseLine)
 admin.site.register(CoatColor)
 admin.site.register(GenotypeTag)
 
+class MouseGenotypeInline(admin.TabularInline):
+    model = MouseGenotype
+    fields = ["tag", "zygosity"]
+    extra = 1
+
 @admin.register(Mouse)
 class MouseAdmin(admin.ModelAdmin):
+    inlines = [MouseGenotypeInline]
     list_display = ('tag', 'sex', 'dob', 'wean_date', 'mature_date', 'mouse_line', 'owner', 'protocol')
     list_filter = ('sex', 'mouse_line', 'protocol', 'owner', 'coat_color')
     search_fields = ('tag', 'phenotype')
-    filter_horizontal = ('genotype',)
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj: # editing existing mouse - show tag as read-only
+            return ('tag',)
+        return() # Creating a new mouse - hide it entirely, let save() and generate it
+
+    def get_exclude(self, request, obj=None):
+        if not obj: # hide tag field on the add form
+            return ('tag',)
+        return()
 
 @admin.register(MatingPair)
 class MatingPairAdmin(admin.ModelAdmin):
@@ -32,3 +47,12 @@ class MatingPairAdmin(admin.ModelAdmin):
     def is_active(self, obj):
         return obj.end_date is None
 
+
+class PupInline(admin.TabularInline):
+    model = Mouse
+    fields = ["sex", "alt_id", "dob", "coat_color", "mouse_line"]
+    extra = 1  # number of blank rows shown
+
+@admin.register(Litter)
+class LitterAdmin(admin.ModelAdmin):
+    inlines = [PupInline]

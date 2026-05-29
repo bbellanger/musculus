@@ -1,6 +1,6 @@
-from django.db import models
+from django.db import models, transaction # For unique auto id attribution
 from django.contrib.auth.models import User
-import uuid
+import uuid, re # For unique auto id attribution
 from datetime import timedelta
 
 # Create your models here.
@@ -14,7 +14,7 @@ class Protocol(models.Model):
         return self.name
 
 class MouseLine(models.Model):
-    name = models.CharField(max_length=15)
+    name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
@@ -31,19 +31,122 @@ class GenotypeTag(models.Model):
     def __str__(self):
         return self.label
 
-# Mouse model
+# Model for genotype tag inhiritance
+class MouseGenotype(models.Model):
+    mouse = models.ForeignKey("Mouse", on_delete=models.CASCADE, related_name="genotype_entries")
+    tag = models.ForeignKey(GenotypeTag, on_delete=models.CASCADE)
+    zygosity = models.CharField(max_length=3, choices=[("HET", "Heterozygous"), ("HOM", "Homozygous"), ("WT", "Wild Type")])
 
+    class Meta:
+        unique_together = ("mouse", "tag") # one row per mouse+tag combination
+
+
+# Mouse model
 class Mouse(models.Model):
     SEX_CHOICES = {"F": "Female", "M": "Male"}
+    ALT_ID = {"None": "None", "L": "L","R": "R","LL": "LL","RR": "RR","LR": "LR","LLR": "LLR","LRR": "LRR","LLRR": "LLRR","LLL": "LLL","RRR": "RRR","LLLR": "LLLR","LLLRR": "LLLRR","LLLLRRR": "LLLRRR", "LRRR": "LRRR","LLRRR": "LLRRR"}
     MATURITY_DAYS = 42 # Equivalent to 6 weeks
 
     uuid = models.UUIDField(primary_key =True, default=uuid.uuid4, editable=False)
-    tag = models.CharField(max_length=10)
-    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
+    tag = models.CharField(max_length=10, unique=True, blank=True)
+
+    ## Genotyp parental inheritance
+    def  _inherit_parental_genotypes(self):
+        if not self.litter_id:
+            return
+        pair = self.litter.mating_pair
+        if pair is None:
+            return
+        def _hom_set(parent):
+            if parent is None:
+                return set()
+            return set(
+                parent.genotype_entries
+                    .filter(zygosity="HOM")
+                    .values_list("tag_id", flat=True)
+            )
+
+        male_hom   = _hom_set(pair.male)    # e.g. {3, 5}   (tag IDs for Cre and fl/fl)
+        female_hom = _hom_set(pair.female)  # e.g. {3}      (tag ID for Cre only)
+
+        both_hom = male_hom & female_hom    # {3}     — intersection: in BOTH sets
+        one_hom  = (male_hom | female_hom) - both_hom  # {5} — in either but NOT both
+
+        # Create hom inh tags
+        for tag_id in both_hom:
+            MouseGenotype.objects.get_or_create( # Don;t overwrite existant genotype, in case it was genotyped
+                mouse=self, tag_id=tag_id,
+                defaults={"zygosity": "HOM"},
+            )
+
+        # Create het inh tags
+        for tag_id in one_hom:
+            MouseGenotype.objects.get_or_create( # No overwritting
+                mouse=self, tag_id=tag_id,
+                defaults={"zygosity": "HET"},
+            )
+
+    ## Mouse - sync MouseLine
+    def _sync_mouse_line(self):
+        het_labels = list(
+            self.genotype_entries
+                .filter(zygosity="HET")
+                .order_by("tag__label")
+                .values_list("tag__label", flat=True)
+        )
+
+        if not het_labels:
+            return
+        line_name = " ; ".join(het_labels)
+        mouse_line, _ = MouseLine.objects.get_or_create(name=line_name)
+
+        if self.mouse_line_id != mouse_line.pk:
+            Mouse.objects.filter(pk=self.pk).update(mouse_line=mouse_line)
+            self.mouse_line = mouse_line
+
+    ## Mouse - Save
+    def save(self, *args, **kwargs):
+        if not self.tag:
+            self.tag = self._generate_tag()
+
+        if not self.owner and self.litter and self.litter.owner:
+            self.owner = self.litter.owner
+
+        if self.litter_id:
+            if not self.owner_id and self.litter.owner:
+                self.owner = self.litter.owner
+            if not self.protocol_id and self.litter.protocol_id:
+                self.protocol = self.litter.protocol
+
+        super().save(*args, **kwargs)
+
+        # Creat genotype entries inherited from parents
+        self._inherit_parental_genotypes()
+        # Derive and assign to MouseLine
+        self._sync_mouse_line()
+
+    @classmethod
+    # The method is attached to the class rather than an instance, so it receives cls (the Mouse class itself) instead of self.
+    # This lets it query the database without needing an existing mouse object
+    def _generate_tag(cls):
+        with transaction.atomic(): # Wraps everything in a single database transaction | If anything fails inside, the entire block is rolled back
+            # Lock existing rows to prevent two mice grabbing the same tag
+            existing_tags = cls.objects.select_for_update().values_list("tag", flat=True)
+            nums = [
+                int(m.group(1))
+                for tag in existing_tags
+                if (m := re.match(r"^M(\d+)$", tag))
+            ]
+            next_num = max(nums) + 1 if nums else 1
+            return f"M{next_num:06d}" #M000001, M000002, ...
+
+
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES, null=True, blank=True)
+    alt_id = models.CharField(max_length=7, choices=ALT_ID, null=True, blank=True)
     dob = models.DateField()
+    litter = models.ForeignKey('Litter', on_delete=models.SET_NULL, null=True, blank=True, related_name="pups")
 
     ## Mouse - Foreign Keys
-
     protocol = models.ForeignKey(Protocol, on_delete=models.SET_NULL, null=True, blank=True, related_name="mice")
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="mice")
     mouse_line = models.ForeignKey(MouseLine, on_delete=models.SET_NULL, null=True, blank=True, related_name="mice")
@@ -69,11 +172,18 @@ class Mouse(models.Model):
     ## Mouse - Mating
     @property
     def is_mating(self):
-        return self.mating_as_male.filter(end_date__isnull=True).exists() or self.mating_as_female.filter(end_date__isnull=True).exists()
+        return self.mated_as_male.filter(end_date__isnull=True).exists() or self.mated_as_female.filter(end_date__isnull=True).exists()
 
     ## define __str__ method to avoid UUID fallback
     def __str__(self):
         return self.tag
+
+    ## Mouse - MatingProtocol
+    @property
+    def on_protocol(self):
+        if self.sex == "M" and self.protocol.exist():
+            return self.protocol
+        return None
 
 # MatingPair
 class MatingPair(models.Model):
@@ -82,6 +192,13 @@ class MatingPair(models.Model):
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True) #null means still active
 
+    ## MatingPair - Inherit Female ownership
+    @property
+    def owner(self):
+        if self.female:
+            return self.female.owner
+        return None
+
     ## MatingPair - turn method into attribute
     @property
     def is_active(self):
@@ -89,3 +206,20 @@ class MatingPair(models.Model):
 
     def __str__(self):
         return f"{self.male} x {self.female} ({'active' if self.is_active else 'ended'})"
+
+# Litter model
+class Litter(models.Model):
+    mating_pair = models.ForeignKey(MatingPair, on_delete=models.SET_NULL, null=True, related_name="litters")
+    dob = models.DateField()
+    notes = models.CharField(max_length=200, null=True, blank=True)
+    protocol = models.ForeignKey(Protocol, on_delete=models.SET_NULL, null=True, blank=True, related_name="litters_on_protocol")
+    #owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="litters")
+
+    def __str__(self):
+        return f"litter from {self.mating_pair} on {self.dob}"
+
+    @property
+    def owner(self):
+        if self.mating_pair and self.mating_pair.female:
+            return self.mating_pair.female.owner
+        return None

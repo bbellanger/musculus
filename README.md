@@ -27,3 +27,16 @@ musculus/
 │       └── login.html
 └── manage.py
 ```
+
+### Method
+Full path of the model.py method walk:
+
+```bash
+self                          ← the new mouse (pup)
+  .litter                     ← ForeignKey to Litter
+    .mating_pair              ← ForeignKey to MatingPair
+      .male                   ← ForeignKey to Mouse (the father)
+        .genotype_entries     ← reverse relation to MouseGenotype rows
+          .filter(zygosity="HOM")
+          .values_list("tag_id", flat=True)
+```
