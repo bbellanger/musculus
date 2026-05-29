@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Litter, Mouse, Protocol, MouseLine, CoatColor, GenotypeTag, MatingPair, MouseGenotype
+from .models import Cage, Litter, Mouse, Protocol, MouseLine, CoatColor, GenotypeTag, MatingPair, MouseGenotype
 
 admin.site.register(Protocol)
 admin.site.register(MouseLine)
@@ -10,6 +10,16 @@ class MouseGenotypeInline(admin.TabularInline):
     model = MouseGenotype
     fields = ["tag", "zygosity"]
     extra = 1
+
+@admin.register(Cage)
+class CageAdmin(admin.ModelAdmin):
+    list_display = ('cage_id', 'cage_location', 'name')
+    readonly_fields = ('name',)
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return('cage_id', 'name')
+        return('name',)
 
 @admin.register(Mouse)
 class MouseAdmin(admin.ModelAdmin):

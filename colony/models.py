@@ -49,6 +49,7 @@ class Mouse(models.Model):
 
     uuid = models.UUIDField(primary_key =True, default=uuid.uuid4, editable=False)
     tag = models.CharField(max_length=10, unique=True, blank=True)
+    cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True)
 
     ## Genotyp parental inheritance
     def  _inherit_parental_genotypes(self):
@@ -117,6 +118,9 @@ class Mouse(models.Model):
                 self.owner = self.litter.owner
             if not self.protocol_id and self.litter.protocol_id:
                 self.protocol = self.litter.protocol
+
+        if not self.cage_id and hasattr(self.litter.mating_pair, 'cage'):
+            self.cage = self.litter.mating_pair.cage
 
         super().save(*args, **kwargs)
 
@@ -223,3 +227,48 @@ class Litter(models.Model):
         if self.mating_pair and self.mating_pair.female:
             return self.mating_pair.female.owner
         return None
+
+# Cage model
+class Cage(models.Model):
+    cage_id = models.CharField(max_length=10, unique=True, blank=True)
+    cage_location = models.CharField(max_length=10, unique=True, blank=True)
+    mating_pair = models.OneToOneField(
+        MatingPair,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="cage"
+    )
+
+    def _generate_cage_id(self):
+        last = Cage.objects.order_by("-cage_id").first()
+        if last and last.cage_id.startswith("C"):
+            try:
+                num = int(last.cage_id[1:]) + 1
+            except ValueError:
+                num = 1
+        else :
+            num = 1
+        return f"C{num:06d}" # e.g. C000001, C000002, ...
+
+    def save(self, *args, **kwargs):
+        if not self.cage_id:
+            self.cage_id = self._generate_cage_id()
+        super().save(*args, **kwargs)
+
+    @property
+    def name(self):
+        if not self.mating_pair:
+            return None
+        het_labels = set()
+        for parent in [self.mating_pair.male, self.mating_pair.female]:
+            if parent:
+                for mg in parent.genotype_entries.filter(zygosity__in=["HET", "HOM"]):
+                    het_labels.add(mg.tag.label)
+        if het_labels:
+            line_name = " ; ".join(sorted(het_labels))
+            return MouseLine.objects.filter(name=line_name).first()
+        return None
+
+    def __str__(self):
+        return f"{self.cage_id} - {self.name or 'Unknow line'}"
