@@ -713,6 +713,16 @@
                     <label class="field-label">Notes</label>
                     <input class="field-input" name="notes" placeholder="Free text…" />
                   </div>
+                          <!-- Number of pups for new litter -->
+                  <div class="field-group">
+                  <label class="field-label">Pups</label>
+                  <select class="field-select" name="pups" required>
+                  <option value="">—</option>
+                  {% for n in pup_range %}
+                  <option value="{{ n }}">{{ n }}</option>
+                  {% endfor %}
+                  </select>
+                  </div>
                   <div class="form-actions">
                     <button type="submit" class="btn btn-primary btn-sm">Save</button>
                     <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEdit('litter-new')">Cancel</button>

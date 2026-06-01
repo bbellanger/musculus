@@ -27,6 +27,7 @@ def _base_context():
         'females':       Mouse.objects.filter(sex='F'),
         'alt_id_choices': ['L', 'R', 'LL', 'RR', 'LR', 'LLR', 'LRR', 'LLRR',
                            'LLL', 'RRR', 'LLLR', 'LLLRR', 'LRRR', 'LLRRR'],
+        'pup_range':      range(1, 13),
     }
 
 
@@ -147,16 +148,27 @@ def matingpair_delete(request, pk):
 
 # ── Litter CRUD ────────────────────────────────────────────────────────────
 
+#@login_required
+#def litter_create(request):
+#    if request.method == 'POST':
+#        Litter.objects.create(
+#            mating_pair = get_object_or_404(MatingPair, pk=request.POST.get('mating_pair')),
+#            dob         = request.POST.get('dob'),
+#            notes       = request.POST.get('notes', ''),
+#        )
+#    return redirect('index')
 @login_required
 def litter_create(request):
     if request.method == 'POST':
-        Litter.objects.create(
+        litter = Litter.objects.create(
             mating_pair = get_object_or_404(MatingPair, pk=request.POST.get('mating_pair')),
             dob         = request.POST.get('dob'),
             notes       = request.POST.get('notes', ''),
         )
+        pup_count = int(request.POST.get('pups') or 0)
+        for _ in range(pup_count):
+            Mouse.objects.create(litter=litter, dob=litter.dob)
     return redirect('index')
-
 
 @login_required
 def litter_update(request, pk):
