@@ -6,7 +6,6 @@ function switchTab(name, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   btn.classList.add('active');
-  // Close any open edit rows when changing tabs
   document.querySelectorAll('.edit-row.open').forEach(r => r.classList.remove('open'));
 }
 
@@ -14,33 +13,55 @@ function switchTab(name, btn) {
 function toggleEdit(id) {
   const row = document.getElementById('edit-' + id);
   const wasOpen = row.classList.contains('open');
-  // Close all open rows first
   document.querySelectorAll('.edit-row.open').forEach(r => r.classList.remove('open'));
   if (!wasOpen) row.classList.add('open');
 }
 
-// ── Filter table rows by text query ──────────────────────────────────────
-function filterTable(tbodyId, query) {
-  const q = query.toLowerCase();
+// ── Filter state — one entry per tbody id ────────────────────────────────
+const _filterState = {};
+
+function _getState(tbodyId) {
+  if (!_filterState[tbodyId]) {
+    _filterState[tbodyId] = { query: '', sex: '', owner: '' };
+  }
+  return _filterState[tbodyId];
+}
+
+// ── Core: apply all active filters to a tbody ─────────────────────────────
+function applyFilters(tbodyId) {
+  const state = _getState(tbodyId);
+  const q = state.query.toLowerCase();
+
   document.querySelectorAll('#' + tbodyId + ' .data-row').forEach(row => {
-    const match = row.textContent.toLowerCase().includes(q);
-    row.style.display = match ? '' : 'none';
-    // Hide the paired edit row too
+    const textMatch  = !q || row.textContent.toLowerCase().includes(q);
+    const sexMatch   = !state.sex   || row.dataset.sex   === state.sex;
+    const ownerMatch = !state.owner || row.dataset.owner === state.owner;
+    const show = textMatch && sexMatch && ownerMatch;
+
+    row.style.display = show ? '' : 'none';
+
     const editRow = document.getElementById('edit-' + row.dataset.id);
-    if (editRow) editRow.style.display = match ? '' : 'none';
+    if (editRow) {
+      editRow.style.display = show ? '' : 'none';
+      if (!show) editRow.classList.remove('open');
+    }
   });
 }
 
-// ── Filter mouse table by sex ─────────────────────────────────────────────
-function filterTableBySex(val) {
-  document.querySelectorAll('#mouse-tbody .data-row').forEach(row => {
-    const show = !val || row.dataset.sex === val;
-    row.style.display = show ? '' : 'none';
-    if (!show) {
-      const editRow = document.getElementById('edit-' + row.dataset.id);
-      if (editRow) editRow.classList.remove('open');
-    }
-  });
+// ── Public filter helpers (called from HTML) ──────────────────────────────
+function filterTable(tbodyId, value) {
+  _getState(tbodyId).query = value;
+  applyFilters(tbodyId);
+}
+
+function filterTableBySex(value) {
+  _getState('mouse-tbody').sex = value;
+  applyFilters('mouse-tbody');
+}
+
+function filterTableByUser(tbodyId, value) {
+  _getState(tbodyId).owner = value;
+  applyFilters(tbodyId);
 }
 
 // ── Add a blank genotype row inside a MouseGenotype inline table ──────────

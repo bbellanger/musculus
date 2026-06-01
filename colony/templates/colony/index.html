@@ -59,6 +59,11 @@
         <option value="M">Male</option>
         <option value="F">Female</option>
       </select>
+      <select class="filter-select" onchange="filterTableByUser('mouse-tbody', this.value)">
+        <option value="">All Users</option>
+        <option value="bbellanger">bbellanger</option>
+        <option value="hkaplan">hkaplan</option>
+      </select>
     </div>
 
     <div class="card">
@@ -173,7 +178,7 @@
           </tr>
 
           {% for mouse in mice %}
-          <tr class="data-row" data-id="m{{ mouse.pk }}" data-sex="{{ mouse.sex }}">
+          <tr class="data-row" data-id="m{{ mouse.pk }}" data-sex="{{ mouse.sex }}" data-owner="{{ mouse.owner.username }}">
             <td class="mono">{{ mouse.tag }}</td>
             <td>
               {% if mouse.sex == 'M' %}
