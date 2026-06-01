@@ -42,3 +42,4 @@ logs/
 
 # Docker volumes if you ever snapshot them
 *.tar
+static/
