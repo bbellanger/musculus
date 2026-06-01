@@ -29,7 +29,11 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{host}" for host in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if host
+]
 
 
 # Application definition
@@ -81,7 +85,7 @@ WSGI_APPLICATION = "settings.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": BASE_DIR / "db_data" / "db.sqlite3",
     }
 }
 
