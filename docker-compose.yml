@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    restart: always
+    restart: no
     env_file: .env
     volumes:
       - db_data:/app/db_data
@@ -11,7 +11,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    restart: always
+    restart: no
     ports:
       - "8001:80"
     volumes:

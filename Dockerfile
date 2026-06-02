@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
-RUN adduser --disabled-password --gecos '' appuser
-USER appuser
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+#USER appuser
 
 WORKDIR /app
 

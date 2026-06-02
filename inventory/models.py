@@ -1,4 +1,4 @@
-from django.db import models, transaction
+from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.functions import Now
 #import uuid, re
@@ -7,7 +7,7 @@ from django.db.models.functions import Now
 class Manufacturer(models.Model):
     name = models.CharField(max_length=30)
     url = models.CharField(max_length=50, null=True, blank=True)
-    lookup = models.CharField(max_length=50, null=True, blank=True) # lookup url for id search
+    lookup = models.CharField(max_length=50, null=True, blank=True, db_comment="Lookup url for item search") # lookup url for id search
     rep = models.CharField(max_length=30, null=True, blank=True)
     rep_phone = models.CharField(max_length=15, null=True, blank=True)
     rep_email = models.CharField(max_length=30, null=True, blank=True)
@@ -25,7 +25,7 @@ class Category(models.Model):
 class Vendor(models.Model):
     name = models.CharField(max_length=30)
     url = models.CharField(max_length=50, null=True, blank=True)
-    lookup = models.CharField(max_length=50, null=True, blank=True)
+    lookup = models.CharField(max_length=50, null=True, blank=True, db_comment="Lookup url for item search")
     phone = models.CharField(max_length=15, null=True, blank=True)
     rep = models.CharField(max_length=30, null=True, blank=True)
     rep_phone = models.CharField(max_length=15, null=True, blank=True)
@@ -45,28 +45,30 @@ class Order(models.Model):
 
 class OrderItems(models.Model):
     UNIT_CHOICES = {"L": "Liter", "g": "Grams", "kg": "Kilograms", "lbs": "Pounds"}
-    name = models.CharField(max_length=50)
-    chemical_formula = models.CharField(max_length=50, null=True, blank=True)
-    catalog_number = models.CharField(max_length=30, null=True, blank=True)
-    manufacturer_number = models.CharField(max_length=30, null=True, blank=True)
+    #name = models.CharField(max_length=50)
+    #chemical_formula = models.CharField(max_length=50, null=True, blank=True)
+    #catalog_number = models.CharField(max_length=30, null=True, blank=True)
+    #manufacturer_number = models.CharField(max_length=30, null=True, blank=True)
     item = models.ForeignKey('Item', on_delete=models.CASCADE, null=False, blank=False)
     size_unit = models.DecimalField(max_digits=5, decimal_places=2)
     unit = models.CharField(max_length=15, null=True, blank=True, choices=UNIT_CHOICES)
+    price = models.CharField(max_length=15, null=True, blank=True, db_comment="$$")
     comment = models.CharField(max_length=250, null=True, blank=True)
-    order_items = models.ForeignKey(Order, on_delete=models.CASCADE, null=False, blank=False)
+    #order_items = models.ForeignKey(Order, on_delete=models.CASCADE, null=False, blank=False)
 
     def __str__(self):
-        return self.name
+        return self.item
 
 # Item inherit from orderItem which inherit from Order
 class Item(models.Model):
     name = models.CharField(max_length=30)
+    chemical_formula = models.CharField(max_length=50, null=True, blank=True)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.SET_NULL, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, blank=True)
     #order = models.ForeignKey(order, on_delete=SET_NULL, null=True, blank=True)
     #order_items = models.ForeignKey(OrderItems, on_delete=SET_NULL, null=True, blank=True)
-    catalog_number = models.CharField(max_length=20, null=False, blank=False)
+    catalog_number = models.CharField(max_length=20, null=True, blank=True)
     manufacturer_number = models.CharField(max_length=20, null=True, blank=True)
     comment = models.CharField(max_length=300, null=True, blank=True)
 
