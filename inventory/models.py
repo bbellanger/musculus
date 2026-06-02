@@ -61,6 +61,14 @@ class OrderItems(models.Model):
 # Item inherit from orderItem which inherit from Order
 class Item(models.Model):
     name = models.CharField(max_length=30)
+    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, blank=True)
+    #order = models.ForeignKey(order, on_delete=SET_NULL, null=True, blank=True)
+    #order_items = models.ForeignKey(OrderItems, on_delete=SET_NULL, null=True, blank=True)
+    catalog_number = models.CharField(max_length=20, null=False, blank=False)
+    manufacturer_number = models.CharField(max_length=20, null=True, blank=True)
+    comment = models.CharField(max_length=300, null=True, blank=True)
 
     def __str__(self):
         return self.name
