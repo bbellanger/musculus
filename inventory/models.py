@@ -45,19 +45,18 @@ class Order(models.Model):
 
 class OrderItems(models.Model):
     UNIT_CHOICES = {"L": "Liter", "g": "Grams", "kg": "Kilograms", "lbs": "Pounds"}
-    #name = models.CharField(max_length=50)
-    #chemical_formula = models.CharField(max_length=50, null=True, blank=True)
-    #catalog_number = models.CharField(max_length=30, null=True, blank=True)
-    #manufacturer_number = models.CharField(max_length=30, null=True, blank=True)
-    item = models.ForeignKey('Item', on_delete=models.CASCADE, null=False, blank=False)
-    size_unit = models.DecimalField(max_digits=5, decimal_places=2)
-    unit = models.CharField(max_length=15, null=True, blank=True, choices=UNIT_CHOICES)
+    item        = models.ForeignKey('Item', on_delete=models.CASCADE, null=False, blank=False)
+    size_unit   = models.DecimalField(max_digits=5, decimal_places=2)
+    unit        = models.CharField(max_length=15, null=True, blank=True, choices=UNIT_CHOICES)
+    quantity    = models.PositiveIntegerField(default=1)
+    #price       = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, db_comment="$$")
     price = models.CharField(max_length=15, null=True, blank=True, db_comment="$$")
-    comment = models.CharField(max_length=250, null=True, blank=True)
-    #order_items = models.ForeignKey(Order, on_delete=models.CASCADE, null=False, blank=False)
+    full_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, db_comment="price x quantity")
+    comment     = models.CharField(max_length=250, null=True, blank=True)
+    order       = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='orderitems_set')
 
     def __str__(self):
-        return self.item
+        return self.item.name
 
 # Item inherit from orderItem which inherit from Order
 class Item(models.Model):

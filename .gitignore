@@ -43,3 +43,9 @@ logs/
 # Docker volumes if you ever snapshot them
 *.tar
 static/
+
+# Static files
+staticfiles/
+*.pyc
+__pycache__/
+.env

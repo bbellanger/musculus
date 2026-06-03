@@ -17,9 +17,8 @@ function toggleEdit(id) {
   if (!wasOpen) row.classList.add('open');
 }
 
-// ── Filter state — one entry per tbody id ────────────────────────────────
+// ── Filter state — one entry per tbody id ─────────────────────────────────
 const _filterState = {};
-
 function _getState(tbodyId) {
   if (!_filterState[tbodyId]) {
     _filterState[tbodyId] = { query: '', sex: '', owner: '' };
@@ -31,15 +30,12 @@ function _getState(tbodyId) {
 function applyFilters(tbodyId) {
   const state = _getState(tbodyId);
   const q = state.query.toLowerCase();
-
   document.querySelectorAll('#' + tbodyId + ' .data-row').forEach(row => {
     const textMatch  = !q || row.textContent.toLowerCase().includes(q);
     const sexMatch   = !state.sex   || row.dataset.sex   === state.sex;
     const ownerMatch = !state.owner || row.dataset.owner === state.owner;
     const show = textMatch && sexMatch && ownerMatch;
-
     row.style.display = show ? '' : 'none';
-
     const editRow = document.getElementById('edit-' + row.dataset.id);
     if (editRow) {
       editRow.style.display = show ? '' : 'none';
@@ -53,38 +49,51 @@ function filterTable(tbodyId, value) {
   _getState(tbodyId).query = value;
   applyFilters(tbodyId);
 }
-
 function filterTableBySex(value) {
   _getState('mouse-tbody').sex = value;
   applyFilters('mouse-tbody');
 }
-
 function filterTableByUser(tbodyId, value) {
   _getState(tbodyId).owner = value;
   applyFilters(tbodyId);
 }
 
-// ── Add a blank genotype row inside a MouseGenotype inline table ──────────
+// ── Load GenotypeTag options from the embedded JSON ───────────────────────
+function _getGenotypeTags() {
+  const el = document.getElementById('genotype-tag-data');
+  if (!el) return [];
+  try { return JSON.parse(el.textContent); } catch { return []; }
+}
+
+// ── Add a blank genotype row with real PKs and correct name attributes ────
 function addGenotypeRow(btn) {
+  const tags = _getGenotypeTags();
+  if (tags.length === 0) {
+    alert('No GenotypeTag options available. Please add some via the admin panel first.');
+    return;
+  }
+
+  const tagOptions = tags
+    .map(t => `<option value="${t.pk}">${t.label}</option>`)
+    .join('');
+
   const tbody = btn.closest('.genotype-wrap').querySelector('tbody');
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td>
-      <select class="field-select" style="width:100%">
-        <option>Cre</option>
-        <option>fl/fl</option>
-        <option>Rosa26</option>
+      <select class="field-select" name="genotype_tag" style="width:100%">
+        ${tagOptions}
       </select>
     </td>
     <td>
-      <select class="field-select" style="width:100%">
+      <select class="field-select" name="genotype_zygosity" style="width:100%">
         <option value="HET">HET</option>
         <option value="HOM">HOM</option>
         <option value="WT">WT</option>
       </select>
     </td>
     <td>
-      <button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">✕</button>
+      <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">✕</button>
     </td>`;
   tbody.appendChild(tr);
 }

@@ -1,0 +1,652 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Musculus — Inventory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'colony/colony.css' %}" />
+  <style>
+    .price-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .unit-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .formula-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--accent2);
+    }
+    .sub-form {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+    .sub-form .field-group { margin: 0; }
+    .sub-form .field-label { font-size: 10px; }
+    .sub-form .field-select,
+    .sub-form .field-input { font-size: 12px; padding: 4px 7px; height: 30px; }
+    .field-input[readonly] {
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: default;
+    }
+    .line-items-thead th {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 6px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .line-items-tbody td {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    .total-row td {
+      padding: 8px 10px;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-light);
+      border-top: 2px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="/">musculus<span>.</span></a>
+  <span style="flex:1"></span>
+  <span class="header-tag">inventory</span>
+  <span style="margin-left:16px; font-size:12px; color:rgba(244,241,235,0.5);">{{ request.user.username }}</span>
+  <a href="{% url 'logout' %}" style="margin-left:16px; font-size:12px; color:rgba(244,241,235,0.4); text-decoration:none;">logout</a>
+</header>
+
+<div class="wrapper">
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('orders', this)">
+      Orders <span class="tab-indicator">{{ orders|length }}</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('items', this)">
+      Items <span class="tab-indicator">{{ items|length }}</span>
+    </button>
+  </nav>
+
+  <!-- ══════════════════════════════════════
+       TAB: ORDERS
+       ══════════════════════════════════════ -->
+  <div id="tab-orders" class="tab-panel active">
+    <div class="panel-header">
+      <span class="panel-title">Orders</span>
+      <span class="panel-subtitle">Lab supply orders &amp; line items</span>
+      <div class="panel-actions">
+        <button class="btn btn-primary btn-sm" onclick="toggleEdit('order-new')">＋ New Order</button>
+      </div>
+    </div>
+
+    <!-- New order form -->
+    <div id="edit-order-new" class="edit-row" style="margin-bottom:12px;">
+      <div style="background:var(--surface); border:1.5px solid var(--border); border-radius:8px; padding:16px 18px;">
+        <form method="post" action="{% url 'inventory:order_create' %}">
+          {% csrf_token %}
+          <div class="form-grid">
+            <div class="field-group">
+              <label class="field-label">Order Name</label>
+              <input class="field-input" name="name" placeholder="e.g. June reagents…" required />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Requested By</label>
+              <select class="field-select" name="requested_by">
+                <option value="">—</option>
+                {% for u in users %}
+                  <option value="{{ u.pk }}">{{ u.username }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-actions" style="margin-top:12px;">
+            <button type="submit" class="btn btn-primary btn-sm">Save Order</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEdit('order-new')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Orders table -->
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Placed On</th>
+            <th>Requested By</th>
+            <th>Items</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="order-tbody">
+          {% for order in orders %}
+
+          <tr class="data-row" data-id="o{{ order.pk }}">
+            <td><strong>{{ order.name }}</strong></td>
+            <td>{{ order.placed_on|default:"—" }}</td>
+            <td>{{ order.requested_by.username|default:"—" }}</td>
+            <td>
+              <span class="derived-chip">
+                <span class="dot"></span>
+                {{ order.orderitems_set.count }} item{{ order.orderitems_set.count|pluralize }}
+              </span>
+            </td>
+            <td style="text-align:right;">
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('o{{ order.pk }}')">✎</button>
+              <form method="post" action="{% url 'inventory:order_delete' order.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm btn-icon"
+                        onclick="return confirm('Delete order {{ order.name }}?')">✕</button>
+              </form>
+            </td>
+          </tr>
+
+          <!-- Edit + line items row -->
+          <tr class="edit-row" id="edit-o{{ order.pk }}">
+            <td colspan="5">
+
+              <!-- Order edit form -->
+              <form method="post" action="{% url 'inventory:order_update' order.pk %}">
+                {% csrf_token %}
+                <div class="form-grid">
+                  <div class="field-group">
+                    <label class="field-label">Order Name</label>
+                    <input class="field-input" name="name" value="{{ order.name }}" required />
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Requested By</label>
+                    <select class="field-select" name="requested_by">
+                      <option value="">—</option>
+                      {% for u in users %}
+                        <option value="{{ u.pk }}" {% if order.requested_by_id == u.pk %}selected{% endif %}>
+                          {{ u.username }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+                <div class="form-actions" style="margin-top:10px; margin-bottom:18px;">
+                  <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEdit('o{{ order.pk }}')">Cancel</button>
+                </div>
+              </form>
+
+              <!-- Line items -->
+              <div style="border-top:1.5px solid var(--border); padding-top:14px; margin-bottom:4px;">
+                <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:10px;">
+                  <span style="font-family:'Space Mono',monospace; font-size:12px; font-weight:700; color:var(--accent);">Line Items</span>
+                  <span style="font-size:11px; color:var(--muted);">
+                    {{ order.orderitems_set.count }} item{{ order.orderitems_set.count|pluralize }}
+                  </span>
+                </div>
+
+                {% if order.orderitems_set.all %}
+                <table style="width:100%; border-collapse:collapse; margin-bottom:14px;">
+                  <thead>
+                    <tr class="line-items-thead">
+                      <th>Item</th>
+                      <th>Manufacturer</th>
+                      <th>Vendor</th>
+                      <th>Catalog #</th>
+                      <th>Size</th>
+                      <th>Unit</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                      <th>Total</th>
+                      <th>Comment</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody class="line-items-tbody">
+                    {% for oi in order.orderitems_set.all %}
+                    <tr>
+                      <td>
+                        <strong>{{ oi.item.name }}</strong>
+                        {% if oi.item.chemical_formula %}
+                          <span class="formula-text"> {{ oi.item.chemical_formula }}</span>
+                        {% endif %}
+                      </td>
+                      <td>{{ oi.item.manufacturer.name|default:"—" }}</td>
+                      <td>{{ oi.item.vendor.name|default:"—" }}</td>
+                      <td>
+                        {% if oi.item.catalog_number %}
+                          <span style="font-family:'Space Mono',monospace; font-size:11px;">#{{ oi.item.catalog_number }}</span>
+                        {% else %}—{% endif %}
+                      </td>
+                      <td>
+                        <span style="font-family:'Space Mono',monospace; font-size:12px;">{{ oi.size_unit }}</span>
+                      </td>
+                      <td><span class="unit-badge">{{ oi.get_unit_display|default:"—" }}</span></td>
+                      <td style="font-family:'Space Mono',monospace; font-size:12px;">{{ oi.quantity }}</td>
+                      <td>
+                        {% if oi.price %}
+                          <span class="price-badge">$ {{ oi.price }}</span>
+                        {% else %}
+                          <span style="color:var(--hint);">—</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if oi.full_amount %}
+                          <span class="price-badge">$ {{ oi.full_amount }}</span>
+                        {% else %}
+                          <span style="color:var(--hint);">—</span>
+                        {% endif %}
+                      </td>
+                      <td style="color:var(--muted); font-size:12px;">{{ oi.comment|default:"" }}</td>
+                      <td style="text-align:right;">
+                        <form method="post" action="{% url 'inventory:orderitem_delete' oi.pk %}" style="display:inline;">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-danger btn-sm btn-icon"
+                                  onclick="return confirm('Remove this item?')">✕</button>
+                        </form>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                    <!-- Order total row -->
+                    <tr class="total-row">
+                      <td colspan="8" style="text-align:right; padding-right:16px;">Order Total</td>
+                      <td colspan="3">
+                        $ {% with order.orderitems_set.all as ois %}
+                            {% for oi in ois %}{{ oi.full_amount|default:0 }}{% if not forloop.last %}+{% endif %}{% endfor %}
+                          {% endwith %}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                {% endif %}
+
+                <!-- Add item to order sub-form -->
+                <form method="post" action="{% url 'inventory:orderitem_create' order.pk %}"
+                      style="background:var(--accent-light); border-radius:6px; padding:12px 14px;">
+                  {% csrf_token %}
+                  <div style="font-family:'Space Mono',monospace; font-size:10px; text-transform:uppercase;
+                              letter-spacing:0.8px; color:var(--accent); margin-bottom:10px;">
+                    ＋ Add Item to Order
+                  </div>
+                  <div class="sub-form">
+
+                    <div class="field-group">
+                      <label class="field-label">Item</label>
+                      <select class="field-select" name="item" required style="min-width:160px;"
+                              onchange="populateItemFields(this)">
+                        <option value="">— select —</option>
+                        {% for item in items %}
+                          <option value="{{ item.pk }}"
+                                  data-manufacturer="{{ item.manufacturer.name|default:'' }}"
+                                  data-manufacturer-id="{{ item.manufacturer_id|default:'' }}"
+                                  data-vendor="{{ item.vendor.name|default:'' }}"
+                                  data-vendor-id="{{ item.vendor_id|default:'' }}"
+                                  data-catalog="{{ item.catalog_number|default:'' }}">
+                            {{ item.name }}{% if item.chemical_formula %} ({{ item.chemical_formula }}){% endif %}
+                          </option>
+                        {% endfor %}
+                      </select>
+                    </div>
+
+                    <div class="field-group">
+                      <label class="field-label">Manufacturer</label>
+                      <input class="field-input" name="manufacturer_display"
+                             readonly placeholder="—" style="width:120px;" />
+                      <input type="hidden" name="manufacturer" />
+                    </div>
+
+                    <div class="field-group">
+                      <label class="field-label">Vendor</label>
+                      <input class="field-input" name="vendor_display"
+                             readonly placeholder="—" style="width:110px;" />
+                      <input type="hidden" name="vendor" />
+                    </div>
+
+                    <div class="field-group">
+                      <label class="field-label">Catalog #</label>
+                      <input class="field-input" name="catalog_number"
+                             readonly placeholder="—" style="width:95px;" />
+                    </div>
+
+                    <div class="field-group">
+                      <label class="field-label">Size</label>
+                      <input class="field-input" name="size_unit" type="number"
+                             step="0.01" min="0" placeholder="1.00" style="width:70px;" required />
+                    </div>
+
+                    <div class="field-group">
+                      <label class="field-label">Unit</label>
+                      <select class="field-select" name="unit" style="width:90px;">
+                        <option value="">—</option>
+                        {% for key, label in unit_choices.items %}
+                          <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+
+                    <div class="field-group">
+                      <label class="field-label">Qty</label>
+                      <input class="field-input" name="quantity" type="number"
+                             min="1" value="1" style="width:60px;"
+                             oninput="updateTotal(this)" />
+                    </div>
+
+                    <div class="field-group">
+                      <label class="field-label">Price ($)</label>
+                      <input class="field-input" name="price" type="number"
+                             step="0.01" min="0" placeholder="0.00" style="width:80px;"
+                             oninput="updateTotal(this)" />
+                    </div>
+
+                    <div class="field-group">
+                      <label class="field-label">Total</label>
+                      <input class="field-input" name="total_display"
+                             readonly placeholder="—" style="width:80px; font-family:'Space Mono',monospace; font-weight:700; color:var(--accent);" />
+                    </div>
+
+                    <div class="field-group">
+                      <label class="field-label">Comment</label>
+                      <input class="field-input" name="comment" placeholder="Optional…" style="width:130px;" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-end;">Add</button>
+                  </div>
+                </form>
+
+              </div><!-- /line items -->
+            </td>
+          </tr>
+
+          {% empty %}
+          <tr class="empty-row">
+            <td colspan="5">No orders yet. Create your first order above.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div><!-- /card -->
+  </div><!-- /tab-orders -->
+
+
+  <!-- ══════════════════════════════════════
+       TAB: ITEMS
+       ══════════════════════════════════════ -->
+  <div id="tab-items" class="tab-panel">
+    <div class="panel-header">
+      <span class="panel-title">Items</span>
+      <span class="panel-subtitle">Reagents, consumables &amp; supplies catalog</span>
+      <div class="panel-actions">
+        <button class="btn btn-primary btn-sm" onclick="toggleEdit('item-new')">＋ New Item</button>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar" style="margin-bottom:16px;">
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="Search name, formula, catalog…"
+               oninput="filterTable('item-tbody', this.value)" />
+      </div>
+      <select class="filter-select" onchange="filterTableByCategory(this.value)">
+        <option value="">All categories</option>
+        {% for cat in categories %}
+          <option value="{{ cat.name }}">{{ cat.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- New item form -->
+    <div id="edit-item-new" class="edit-row" style="margin-bottom:12px;">
+      <div style="background:var(--surface); border:1.5px solid var(--border); border-radius:8px; padding:16px 18px;">
+        <form method="post" action="{% url 'inventory:item_create' %}">
+          {% csrf_token %}
+          <div class="form-grid">
+            <div class="field-group">
+              <label class="field-label">Name</label>
+              <input class="field-input" name="name" placeholder="e.g. PBS Buffer…" required />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Formula</label>
+              <input class="field-input" name="chemical_formula" placeholder="e.g. NaCl…" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Category</label>
+              <select class="field-select" name="category">
+                <option value="">—</option>
+                {% for cat in categories %}
+                  <option value="{{ cat.pk }}">{{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Manufacturer</label>
+              <select class="field-select" name="manufacturer">
+                <option value="">—</option>
+                {% for m in manufacturers %}
+                  <option value="{{ m.pk }}">{{ m.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Vendor</label>
+              <select class="field-select" name="vendor">
+                <option value="">—</option>
+                {% for v in vendors %}
+                  <option value="{{ v.pk }}">{{ v.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Catalog #</label>
+              <input class="field-input" name="catalog_number" placeholder="Cat. number…" />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Mfr #</label>
+              <input class="field-input" name="manufacturer_number" placeholder="Mfr. number…" />
+            </div>
+            <div class="field-group" style="grid-column: 1 / -1;">
+              <label class="field-label">Comment</label>
+              <input class="field-input" name="comment" placeholder="Free text…" style="width:100%;" />
+            </div>
+          </div>
+          <div class="form-actions" style="margin-top:12px;">
+            <button type="submit" class="btn btn-primary btn-sm">Save Item</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEdit('item-new')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Items table -->
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Formula</th>
+            <th>Category</th>
+            <th>Manufacturer</th>
+            <th>Vendor</th>
+            <th>Catalog #</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="item-tbody">
+          {% for item in items %}
+
+          <tr class="data-row" data-id="i{{ item.pk }}" data-category="{{ item.category.name|default:'' }}">
+            <td><strong>{{ item.name }}</strong></td>
+            <td>
+              {% if item.chemical_formula %}
+                <span class="formula-text">{{ item.chemical_formula }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              {% if item.category %}
+                <span class="derived-chip"><span class="dot"></span>{{ item.category.name }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td>{{ item.manufacturer.name|default:"—" }}</td>
+            <td>{{ item.vendor.name|default:"—" }}</td>
+            <td>
+              {% if item.catalog_number %}
+                <span style="font-family:'Space Mono',monospace; font-size:11px;">#{{ item.catalog_number }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td style="text-align:right;">
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('i{{ item.pk }}')">✎</button>
+              <form method="post" action="{% url 'inventory:item_delete' item.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm btn-icon"
+                        onclick="return confirm('Delete {{ item.name }}?')">✕</button>
+              </form>
+            </td>
+          </tr>
+
+          <!-- Edit row -->
+          <tr class="edit-row" id="edit-i{{ item.pk }}">
+            <td colspan="7">
+              <form method="post" action="{% url 'inventory:item_update' item.pk %}">
+                {% csrf_token %}
+                <div class="form-grid">
+                  <div class="field-group">
+                    <label class="field-label">Name</label>
+                    <input class="field-input" name="name" value="{{ item.name }}" required />
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Formula</label>
+                    <input class="field-input" name="chemical_formula" value="{{ item.chemical_formula|default:'' }}" />
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Category</label>
+                    <select class="field-select" name="category">
+                      <option value="">—</option>
+                      {% for cat in categories %}
+                        <option value="{{ cat.pk }}" {% if item.category_id == cat.pk %}selected{% endif %}>
+                          {{ cat.name }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Manufacturer</label>
+                    <select class="field-select" name="manufacturer">
+                      <option value="">—</option>
+                      {% for m in manufacturers %}
+                        <option value="{{ m.pk }}" {% if item.manufacturer_id == m.pk %}selected{% endif %}>
+                          {{ m.name }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Vendor</label>
+                    <select class="field-select" name="vendor">
+                      <option value="">—</option>
+                      {% for v in vendors %}
+                        <option value="{{ v.pk }}" {% if item.vendor_id == v.pk %}selected{% endif %}>
+                          {{ v.name }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Catalog #</label>
+                    <input class="field-input" name="catalog_number" value="{{ item.catalog_number|default:'' }}" />
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Mfr #</label>
+                    <input class="field-input" name="manufacturer_number" value="{{ item.manufacturer_number|default:'' }}" />
+                  </div>
+                  <div class="field-group" style="grid-column: 1 / -1;">
+                    <label class="field-label">Comment</label>
+                    <input class="field-input" name="comment" value="{{ item.comment|default:'' }}" style="width:100%;" />
+                  </div>
+                </div>
+                <div class="form-actions" style="margin-top:10px;">
+                  <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEdit('i{{ item.pk }}')">Cancel</button>
+                </div>
+              </form>
+            </td>
+          </tr>
+
+          {% empty %}
+          <tr class="empty-row">
+            <td colspan="7">No items in catalog yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div><!-- /card -->
+  </div><!-- /tab-items -->
+
+</div><!-- /wrapper -->
+
+<script src="{% static 'colony/colony.js' %}"></script>
+<script>
+// ── Auto-populate item fields from selected Item's data attributes ──────────
+function populateItemFields(select) {
+  const opt  = select.options[select.selectedIndex];
+  const form = select.closest('form');
+  form.querySelector('[name="manufacturer_display"]').value = opt.dataset.manufacturer || '';
+  form.querySelector('[name="manufacturer"]').value         = opt.dataset.manufacturerId || '';
+  form.querySelector('[name="vendor_display"]').value       = opt.dataset.vendor || '';
+  form.querySelector('[name="vendor"]').value               = opt.dataset.vendorId || '';
+  form.querySelector('[name="catalog_number"]').value       = opt.dataset.catalog || '';
+  // Recompute total in case qty was already set
+  updateTotal(form.querySelector('[name="quantity"]'));
+}
+
+// ── Live total = price × qty ───────────────────────────────────────────────
+function updateTotal(input) {
+  const form  = input.closest('form');
+  const price = parseFloat(form.querySelector('[name="price"]').value) || 0;
+  const qty   = parseInt(form.querySelector('[name="quantity"]').value)  || 0;
+  const total = form.querySelector('[name="total_display"]');
+  total.value = (price && qty) ? '$ ' + (price * qty).toFixed(2) : '';
+}
+
+// ── Category filter for Items tab ──────────────────────────────────────────
+function filterTableByCategory(val) {
+  document.querySelectorAll('#item-tbody .data-row').forEach(row => {
+    const show = !val || row.dataset.category === val;
+    row.style.display = show ? '' : 'none';
+    const editRow = document.getElementById('edit-' + row.dataset.id);
+    if (editRow) {
+      editRow.style.display = show ? '' : 'none';
+      if (!show) editRow.classList.remove('open');
+    }
+  });
+}
+</script>
+</body>
+</html>

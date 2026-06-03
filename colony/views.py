@@ -1,13 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Mouse, Cage, MatingPair, Litter, MouseLine, CoatColor, Protocol, GenotypeTag
+from .models import Mouse, Cage, MatingPair, Litter, MouseLine, CoatColor, Protocol, GenotypeTag, MouseGenotype
 
 
 # ── Shared context helper ──────────────────────────────────────────────────
 
 def _base_context():
-    """All queryset dropdowns needed by the template."""
     return {
         'mice':         Mouse.objects.select_related(
                             'mouse_line', 'coat_color', 'protocol', 'owner', 'cage', 'litter'
@@ -17,18 +16,44 @@ def _base_context():
         'litters':      Litter.objects.select_related(
                             'mating_pair__male', 'mating_pair__female', 'mating_pair__cage'
                         ).prefetch_related('pups').all(),
-        # Dropdown option lists
-        'mouse_lines':   MouseLine.objects.all(),
-        'coat_colors':   CoatColor.objects.all(),
-        'protocols':     Protocol.objects.all(),
-        'users':         User.objects.all(),
-        'genotype_tags': GenotypeTag.objects.all(),
-        'males':         Mouse.objects.filter(sex='M'),
-        'females':       Mouse.objects.filter(sex='F'),
+        'mouse_lines':    MouseLine.objects.all(),
+        'coat_colors':    CoatColor.objects.all(),
+        'protocols':      Protocol.objects.all(),
+        'users':          User.objects.all(),
+        'genotype_tags':  GenotypeTag.objects.all(),
+        'males':          Mouse.objects.filter(sex='M'),
+        'females':        Mouse.objects.filter(sex='F'),
         'alt_id_choices': ['L', 'R', 'LL', 'RR', 'LR', 'LLR', 'LRR', 'LLRR',
                            'LLL', 'RRR', 'LLLR', 'LLLRR', 'LRRR', 'LLRRR'],
         'pup_range':      range(1, 13),
     }
+
+
+def _save_genotypes(mouse, post):
+    """
+    Replace all MouseGenotype rows for this mouse, then re-sync the mouse line.
+
+    Sequence matters:
+      1. Delete existing genotypes
+      2. Recreate from POST data
+      3. Call _sync_mouse_line() so mouse_line reflects the NEW genotypes
+         (mouse.save() already called it on the OLD genotypes — too early)
+    """
+    tags       = post.getlist('genotype_tag')
+    zygosities = post.getlist('genotype_zygosity')
+
+    MouseGenotype.objects.filter(mouse=mouse).delete()
+
+    for tag_pk, zyg in zip(tags, zygosities):
+        if not tag_pk:
+            continue
+        gt = GenotypeTag.objects.filter(pk=tag_pk).first()
+        if gt and zyg in ('HET', 'HOM', 'WT'):
+            MouseGenotype.objects.create(mouse=mouse, tag=gt, zygosity=zyg)
+
+    # Re-run _sync_mouse_line() now that genotypes are correct.
+    # mouse.save() ran it before genotypes were updated, so we must call it again.
+    mouse._sync_mouse_line()
 
 
 # ── Index ──────────────────────────────────────────────────────────────────
@@ -43,7 +68,7 @@ def index(request):
 @login_required
 def mouse_create(request):
     if request.method == 'POST':
-        Mouse.objects.create(
+        mouse = Mouse.objects.create(
             sex        = request.POST.get('sex'),
             alt_id     = request.POST.get('alt_id') or '',
             dob        = request.POST.get('dob'),
@@ -54,6 +79,7 @@ def mouse_create(request):
             cage       = _fk(Cage,      request.POST.get('cage')),
             phenotype  = request.POST.get('phenotype', ''),
         )
+        _save_genotypes(mouse, request.POST)
     return redirect('index')
 
 
@@ -71,6 +97,7 @@ def mouse_update(request, pk):
         mouse.cage       = _fk(Cage,      request.POST.get('cage'))
         mouse.phenotype  = request.POST.get('phenotype', '')
         mouse.save()
+        _save_genotypes(mouse, request.POST)
     return redirect('index')
 
 
@@ -148,15 +175,6 @@ def matingpair_delete(request, pk):
 
 # ── Litter CRUD ────────────────────────────────────────────────────────────
 
-#@login_required
-#def litter_create(request):
-#    if request.method == 'POST':
-#        Litter.objects.create(
-#            mating_pair = get_object_or_404(MatingPair, pk=request.POST.get('mating_pair')),
-#            dob         = request.POST.get('dob'),
-#            notes       = request.POST.get('notes', ''),
-#        )
-#    return redirect('index')
 @login_required
 def litter_create(request):
     if request.method == 'POST':
@@ -169,6 +187,7 @@ def litter_create(request):
         for _ in range(pup_count):
             Mouse.objects.create(litter=litter, dob=litter.dob)
     return redirect('index')
+
 
 @login_required
 def litter_update(request, pk):
@@ -192,7 +211,6 @@ def litter_delete(request, pk):
 # ── Utility ────────────────────────────────────────────────────────────────
 
 def _fk(model, pk_str):
-    """Return a model instance or None for empty/missing FK values."""
     if pk_str:
         return model.objects.filter(pk=pk_str).first()
     return None

@@ -68,9 +68,9 @@ header .sep { flex: 1; }
 
 /* ── Layout ── */
 .wrapper {
-  max-width: 1100px;
+  max-width: 1800px;
   margin: 0 auto;
-  padding: 28px 24px 60px;
+  padding: 28px 32px 60px;
 }
 
 /* ── Tab Nav ── */
@@ -138,11 +138,8 @@ header .sep { flex: 1; }
   font-size: 18px;
   font-weight: 700;
 }
-.panel-subtitle {
-  font-size: 13px;
-  color: var(--muted);
-}
-.panel-actions { margin-left: auto; display: flex; gap: 8px; }
+.panel-subtitle { font-size: 13px; color: var(--muted); }
+.panel-actions  { margin-left: auto; display: flex; gap: 8px; }
 
 /* ── Buttons ── */
 .btn {
@@ -157,25 +154,26 @@ header .sep { flex: 1; }
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  white-space: nowrap;   /* prevent button labels wrapping/clipping */
 }
-.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary    { background: var(--accent); color: #fff; border-color: var(--accent); }
 .btn-primary:hover { background: #235a41; }
-.btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
+.btn-secondary  { background: var(--surface); color: var(--text); border-color: var(--border); }
 .btn-secondary:hover { background: var(--surface2); }
-.btn-danger { background: var(--danger-light); color: var(--danger); border-color: #f5b7b1; }
-.btn-sm   { font-size: 12px; padding: 4px 10px; }
-.btn-icon { padding: 6px 9px; font-size: 14px; }
+.btn-danger     { background: var(--danger-light); color: var(--danger); border-color: #f5b7b1; }
+.btn-sm         { font-size: 12px; padding: 4px 10px; }
+.btn-icon       { padding: 4px 7px; font-size: 13px; }  /* tighter so it fits in narrow col */
 
 /* ── Card ── */
 .card {
   background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;   /* must stay visible — hidden clips the edit/genotype rows */
   box-shadow: var(--shadow);
 }
 
-/* ── Data Table ── */
+/* ── Data Table (all tabs) ── */
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table thead th {
   font-family: 'Space Mono', monospace;
@@ -184,7 +182,7 @@ header .sep { flex: 1; }
   text-transform: uppercase;
   color: var(--muted);
   background: var(--surface2);
-  padding: 10px 14px;
+  padding: 10px 10px;
   text-align: left;
   border-bottom: 1.5px solid var(--border);
   white-space: nowrap;
@@ -192,13 +190,57 @@ header .sep { flex: 1; }
 .data-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
 .data-table tbody tr:last-child { border-bottom: none; }
 .data-table tbody tr:hover { background: #f8f6f0; }
-.data-table td { padding: 11px 14px; vertical-align: middle; font-size: 13.5px; }
-.data-table td.mono { font-family: 'Space Mono', monospace; font-size: 12px; }
+.data-table td { padding: 9px 10px; vertical-align: middle; font-size: 13px; }
+.data-table td.mono { font-family: 'Space Mono', monospace; font-size: 11.5px; }
+
+/* ── Mouse table: fixed layout, no scrollbar ── */
+.mouse-table {
+  table-layout: fixed;
+  width: 100%;
+}
+.mouse-table .col-tag     { width: 5.5%; }
+.mouse-table .col-sex     { width: 3.5%; }
+.mouse-table .col-altid   { width: 5%; }
+.mouse-table .col-dob     { width: 6.5%; }
+.mouse-table .col-wean    { width: 6.5%; }
+.mouse-table .col-mature  { width: 6.5%; }
+.mouse-table .col-line    { width: 9%; }
+.mouse-table .col-coat    { width: 7%; }
+.mouse-table .col-geno    { width: 13%; }
+.mouse-table .col-proto   { width: 7.5%; }
+.mouse-table .col-owner   { width: 7%; }
+.mouse-table .col-cage    { width: 5%; }
+.mouse-table .col-pheno   { width: 11.5%; }
+.mouse-table .col-actions { width: 7%;  }  /* enough for ✎ + ✕ side by side */
+
+/* Tighter cell padding for the dense mouse table */
+.mouse-table th { padding: 8px 6px; }
+.mouse-table td { padding: 8px 6px; font-size: 12.5px; }
+.mouse-table td.mono { font-size: 11px; }
+
+/* Truncate text in fixed cells, but not the actions or genotype column */
+.mouse-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mouse-table td:nth-child(9),   /* Genotypes — needs to wrap badges */
+.mouse-table td:nth-child(14) { /* Actions — must not clip buttons */
+  overflow: visible;
+  white-space: normal;
+  text-overflow: unset;
+}
+/* Actions cell: keep buttons on one row */
+.mouse-table td:nth-child(14) .actions-cell {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 3px;
+}
 
 /* ── Badges ── */
 .badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
@@ -224,6 +266,8 @@ header .sep { flex: 1; }
   background: #f0ede4;
   border-bottom: 2px solid var(--accent);
   padding: 16px 14px;
+  overflow: visible;   /* edit rows must never clip */
+  white-space: normal;
 }
 
 /* ── Form Grid ── */
@@ -327,7 +371,7 @@ header .sep { flex: 1; }
 .search-box { position: relative; flex: 1; min-width: 200px; }
 .search-box input {
   width: 100%;
-  padding: 7px 10px 7px 32px;
+  padding: 7px 10px 7px 34px;  /* left padding for the icon */
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
   font-family: 'DM Sans', sans-serif;
@@ -342,8 +386,13 @@ header .sep { flex: 1; }
   top: 50%;
   transform: translateY(-50%);
   color: var(--hint);
-  font-size: 13px;
+  font-size: 15px;
+  pointer-events: none;
+  line-height: 1;
 }
+/* Use a CSS-only magnifier so no text overlaps the placeholder */
+.search-icon::before { content: "⌕"; }
+
 .filter-select {
   font-family: 'DM Sans', sans-serif;
   font-size: 13px;
