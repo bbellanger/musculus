@@ -119,7 +119,8 @@ class Mouse(models.Model):
             if not self.protocol_id and self.litter.protocol_id:
                 self.protocol = self.litter.protocol
 
-        if not self.cage_id and hasattr(self.litter.mating_pair, 'cage'):
+#        if not self.cage_id and hasattr(self.litter.mating_pair, 'cage'):
+        if not self.cage_id and self.litter_id and hasattr(self.litter.mating_pair, 'cage'):
             self.cage = self.litter.mating_pair.cage
 
         super().save(*args, **kwargs)

@@ -199,6 +199,26 @@ def litter_update(request, pk):
         litter.notes       = request.POST.get('notes', '')
         litter.cage        = request.POST.get('cage')
         litter.save()
+        # Update each pup — fields posted as pup_<pk>_<fieldname>
+        for pup in litter.pups.all():
+            prefix = f'pup_{pup.pk}_'
+            sex        = request.POST.get(prefix + 'sex')
+            alt_id     = request.POST.get(prefix + 'alt_id')
+            coat_color = request.POST.get(prefix + 'coat_color')
+            cage_id    = request.POST.get(prefix + 'cage')
+            notes      = request.POST.get(prefix + 'notes', '')
+
+            if alt_id is not None:
+                pup.alt_id = alt_id
+            if sex is not None:
+                pup.sex = sex
+            if coat_color is not None:
+                pup.coat_color = _fk(CoatColor, coat_color) if coat_color else None
+            if cage_id is not None:
+                pup.cage = _fk(Cage, cage_id) if cage_id else None
+            pup.notes = notes
+            pup.save()
+
     return redirect('index')
 
 

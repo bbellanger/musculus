@@ -5,7 +5,7 @@ admin.site.register(Manufacturer)
 admin.site.register(Category)
 admin.site.register(Vendor)
 #admin.site.register(Order)
-#admin.site.register(OrderItems)
+admin.site.register(OrderItems)
 admin.site.register(Item)
 
 class OrderAdmin(admin.ModelAdmin):
