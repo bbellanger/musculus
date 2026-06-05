@@ -35,9 +35,11 @@ class Vendor(models.Model):
         return self.name
 
 class Order(models.Model):
+    STATUS_CHOICES = {'ordered': 'ordered', 'pending': 'pending'}
     name = models.CharField(max_length=30)
     placed_on = models.DateField(db_default=Now(), db_comment="Date and time the order was placed, default=Now()")
     requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending')
     #OrderItems = models.ForeignKey('OrderItems', on_delete=models.CASCADE, null=False, blank=False)
 
     def __str__(self):

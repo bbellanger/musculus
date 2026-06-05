@@ -12,7 +12,7 @@ def _base_context():
                             'mouse_line', 'coat_color', 'protocol', 'owner', 'cage', 'litter'
                         ).prefetch_related('genotype_entries__tag').all(),
         'cages':        Cage.objects.select_related('mating_pair__male', 'mating_pair__female').all(),
-        'mating_pairs': MatingPair.objects.select_related('male', 'female').all(),
+        'mating_pairs': MatingPair.objects.filter(end_date__isnull=True).select_related('male', 'female').all(),
         'litters':      Litter.objects.select_related(
                             'mating_pair__male', 'mating_pair__female', 'mating_pair__cage'
                         ).prefetch_related('pups').all(),
@@ -182,10 +182,11 @@ def litter_create(request):
             mating_pair = get_object_or_404(MatingPair, pk=request.POST.get('mating_pair')),
             dob         = request.POST.get('dob'),
             notes       = request.POST.get('notes', ''),
+            cage        = request.POST.get('cage'),
         )
         pup_count = int(request.POST.get('pups') or 0)
         for _ in range(pup_count):
-            Mouse.objects.create(litter=litter, dob=litter.dob)
+            Mouse.objects.create(litter=litter, dob=litter.dob, cage=litter.cage)
     return redirect('index')
 
 
@@ -196,6 +197,7 @@ def litter_update(request, pk):
         litter.mating_pair = get_object_or_404(MatingPair, pk=request.POST.get('mating_pair'))
         litter.dob         = request.POST.get('dob')
         litter.notes       = request.POST.get('notes', '')
+        litter.cage        = request.POST.get('cage')
         litter.save()
     return redirect('index')
 

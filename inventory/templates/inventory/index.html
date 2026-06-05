@@ -81,11 +81,9 @@
 <body>
 
 <header>
-  <a class="logo" href="/">musculus<span>.</span></a>
-  <span style="flex:1"></span>
-  <span class="header-tag">inventory</span>
-  <span style="margin-left:16px; font-size:12px; color:rgba(244,241,235,0.5);">{{ request.user.username }}</span>
-  <a href="{% url 'logout' %}" style="margin-left:16px; font-size:12px; color:rgba(244,241,235,0.4); text-decoration:none;">logout</a>
+  <a class="logo" href="{% url 'index' %}">mus<span>culus</span></a>
+  <div class="sep"></div>
+  <span class="header-tag">{{ request.user.username }} -- Inventory Records | <a href="/">Colony</a></span>
 </header>
 
 <div class="wrapper">
@@ -148,6 +146,7 @@
             <th>Placed On</th>
             <th>Requested By</th>
             <th>Items</th>
+            <th>Status</th>
             <th></th>
           </tr>
         </thead>
@@ -164,6 +163,7 @@
                 {{ order.orderitems_set.count }} item{{ order.orderitems_set.count|pluralize }}
               </span>
             </td>
+            <td>{{ order.get_status_display }}</td>
             <td style="text-align:right;">
               <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('o{{ order.pk }}')">✎</button>
               <form method="post" action="{% url 'inventory:order_delete' order.pk %}" style="display:inline;">
