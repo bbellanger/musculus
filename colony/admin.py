@@ -1,10 +1,22 @@
 from django.contrib import admin
-from .models import Cage, Litter, Mouse, Protocol, MouseLine, CoatColor, GenotypeTag, MatingPair, MouseGenotype
+from .models import Cage, Litter, Mouse, Protocol, MouseLine, CoatColor, GenotypeTag, MatingPair, MouseGenotype, History
 
 admin.site.register(Protocol)
 admin.site.register(MouseLine)
 admin.site.register(CoatColor)
 admin.site.register(GenotypeTag)
+
+class HistoryInline(admin.TabularInline):
+    model = History
+    extra = 1
+    fields = ('event', 'date', 'new_status', 'cage', 'litter', 'mating_pair', 'pup_count', 'notes')
+    readonly_fields = ()
+
+@admin.register(History)
+class HistoryAdmin(admin.ModelAdmin):
+    list_display = ('mouse', 'event', 'date', 'new_status', 'pup_count')
+    list_filter = ('event', 'new_status', 'date')
+    search_fields = ('mouse_tag', 'notes')
 
 class MouseGenotypeInline(admin.TabularInline):
     model = MouseGenotype
@@ -23,7 +35,7 @@ class CageAdmin(admin.ModelAdmin):
 
 @admin.register(Mouse)
 class MouseAdmin(admin.ModelAdmin):
-    inlines = [MouseGenotypeInline]
+    inlines = [MouseGenotypeInline, HistoryInline]
     list_display = ('tag', 'sex', 'dob', 'wean_date', 'mature_date', 'mouse_line', 'owner', 'protocol')
     list_filter = ('sex', 'mouse_line', 'protocol', 'owner', 'coat_color')
     search_fields = ('tag', 'phenotype')

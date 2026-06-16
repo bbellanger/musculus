@@ -31,6 +31,56 @@ class GenotypeTag(models.Model):
     def __str__(self):
         return self.label
 
+# Model History added
+# Relate full history for Mouse
+class History(models.Model):
+    """
+    One record per life event for a mouse
+    Covers: birth, move, mating, litter, status changes, vet care, etc.
+    """
+
+    EVENT_CHOICES = [
+        ("birth",          'Birth'),
+        ('move',           'Cage move'),
+        ('matting',        'Mating'),
+        ('litter',         'Litter'),
+        ('status',         'Status change'),
+        ('vet',            'Vet care'),
+        ('EEG Surgery',     'EEG surgery experiment'),
+        ('EEG rec',        'EEG recording'),
+        ('sleep dep',      'Sleep deprivation experiment'),
+        ('Sleep rec',      'Sleep recording'),
+        ('Injury',         'Injury'),
+        ('death',          'Death'),
+        ('other',          'Other'),
+    ]
+
+    STATUS_CHOICES = [
+        ('alive',          'Alive'),
+        ('breeder',        'Reserved for breeding'),
+        ('vet',            'Under vet surveillance'),
+        ('dead',           'Dead'),
+    ]
+
+    mouse = models.ForeignKey('Mouse', on_delete=models.CASCADE, related_name='history')
+    event = models.CharField(max_length=20, choices=EVENT_CHOICES)
+    date = models.DateField()
+
+    # ----------------------------- Foreign keys for events -------------------------------------#
+
+    cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True, related_name='history', help_text='Destination cage for a move event')
+    litter = models.ForeignKey('Litter', on_delete=models.SET_NULL, null=True, blank=True, related_name='history', help_text='Litter event (link to litter)')
+    mating_pair = models.ForeignKey('MatingPair', on_delete=models.SET_NULL, null=True, blank=True, related_name='history', help_text='Mating event')
+    pup_count = models.PositiveSmallIntegerField(null=True, blank=True, help_text='Number of pups (for litter events)')
+    new_status = models.CharField(max_length=20, choices=EVENT_CHOICES, blank=True, help_text='New.mouse status (for status change events)')
+    notes = models.TextField(blank=True, help_text='Experiment details, vet notes, injury description, etc.')
+
+    class Meta:
+        ordering = ['-date', '-pk']
+
+    def __str__(self):
+        return f'{self.mouse.tag} - {self.get_event_display()} {self.date})'
+
 # Model for genotype tag inhiritance
 class MouseGenotype(models.Model):
     mouse = models.ForeignKey("Mouse", on_delete=models.CASCADE, related_name="genotype_entries")
@@ -43,6 +93,14 @@ class MouseGenotype(models.Model):
 
 # Mouse model
 class Mouse(models.Model):
+
+    STATUS_CHOICES = [
+        ('alive',          'Alive'),
+        ('breeder',        'Reserved for breeding'),
+        ('vet',            'Under vet surveillance'),
+        ('dead',           'Dead'),
+    ]
+
     SEX_CHOICES = {"F": "Female", "M": "Male"}
     ALT_ID = {"None": "None", "L": "L","R": "R","LL": "LL","RR": "RR","LR": "LR","LLR": "LLR","LRR": "LRR","LLRR": "LLRR","LLL": "LLL","RRR": "RRR","LLLR": "LLLR","LLLRR": "LLLRR","LLLLRRR": "LLLRRR", "LRRR": "LRRR","LLRRR": "LLRRR"}
     MATURITY_DAYS = 42 # Equivalent to 6 weeks
@@ -50,6 +108,7 @@ class Mouse(models.Model):
     uuid = models.UUIDField(primary_key =True, default=uuid.uuid4, editable=False)
     tag = models.CharField(max_length=10, unique=True, blank=True)
     cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='alive')
 
     ## Genotyp parental inheritance
     def  _inherit_parental_genotypes(self):

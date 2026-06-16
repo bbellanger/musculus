@@ -443,7 +443,18 @@
                 <span class="derived-chip" style="color:var(--hint)">- no pair</span>
               {% endif %}
             </td>
-            <td>{{ cage.mice.count }}</td>
+            
+            <td>
+              {% for mouse in cage.mice.all %}
+                <span class="derived-chip" style="margin:2px;">
+                  {{ mouse.tag }}
+                  {% if mouse.sex == 'M' %}♂{% else %}♀{% endif %}
+                </span>
+                  {% empty %}
+                <span class="derived-chip" style="color:var(--hint)">—</span>
+                  {% endfor %}
+            </td>
+
             <td>
               <div class="actions-cell">
                 <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('c{{ cage.pk }}')">✎</button>
