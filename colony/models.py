@@ -107,7 +107,7 @@ class Mouse(models.Model):
 
     uuid = models.UUIDField(primary_key =True, default=uuid.uuid4, editable=False)
     tag = models.CharField(max_length=10, unique=True, blank=True)
-    cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True)
+    cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True, related_name='mice')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='alive')
 
     ## Genotyp parental inheritance
@@ -274,7 +274,7 @@ class MatingPair(models.Model):
 # Litter model
 class Litter(models.Model):
     mating_pair = models.ForeignKey(MatingPair, on_delete=models.SET_NULL, null=True, related_name="litters")
-    cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True)
+    cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True, related_name='mice')
     dob = models.DateField()
     notes = models.CharField(max_length=200, null=True, blank=True)
     protocol = models.ForeignKey(Protocol, on_delete=models.SET_NULL, null=True, blank=True, related_name="litters_on_protocol")
