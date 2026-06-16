@@ -46,7 +46,35 @@ class Order(models.Model):
         return self.name
 
 class OrderItems(models.Model):
-    UNIT_CHOICES = {"L": "Liter", "g": "Grams", "kg": "Kilograms", "lbs": "Pounds"}
+    UNIT_CHOICES = {"/box": "per box",
+        "/case": "per case",
+        "/pack": "per pack",
+        "/pair": "per pair",
+        "/rod": "per rod",
+        "Gal": "Gallons",
+        "L": "Litters",
+        "U": "Units",
+        "cm": "Centimiters",
+        "sq ft": "Square feet",
+        "cubic ft": "Cubic feet",
+        "cubic yd": "Cubic yards",
+        "each": "Each",
+        "ft": "Feet",
+        "g": "Grams",
+        "kg": "Kilograms",
+        "lb": "Pounds",
+        "m": "Meters",
+        "mL": "Milliliters",
+        "mg": "Milligrams",
+        "mm": "Millimiters",
+        "oz": "Onces",
+        "pieces": "Pieces",
+        "rxns": "rxns",
+        "samples": "samples",
+        "yd": "Yards",
+        "µg": "Micrograms",
+        "µL": "Microlitters",
+    }
     item        = models.ForeignKey('Item', on_delete=models.CASCADE, null=False, blank=False)
     size_unit   = models.DecimalField(max_digits=5, decimal_places=2)
     unit        = models.CharField(max_length=15, null=True, blank=True, choices=UNIT_CHOICES)
