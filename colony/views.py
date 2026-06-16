@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Mouse, Cage, MatingPair, Litter, MouseLine, CoatColor, Protocol, GenotypeTag, MouseGenotype
-
+from django.db.models import Prefetch
 
 # ── Shared context helper ──────────────────────────────────────────────────
 
@@ -11,7 +11,8 @@ def _base_context():
         'mice':         Mouse.objects.select_related(
                             'mouse_line', 'coat_color', 'protocol', 'owner', 'cage', 'litter'
                         ).prefetch_related('genotype_entries__tag').all(),
-        'cages':        Cage.objects.select_related(Prefetch('mice', queryset=Mouse.objects.order_by('sex', 'tag'))).select_related('mating_pair__male', 'mating_pair__female').all(),
+        #'cages':        Cage.objects.select_related(Prefetch('mice', queryset=Mouse.objects.order_by('sex', 'tag'))).select_related('mating_pair__male', 'mating_pair__female').all(),
+        'cages': Cage.objects.prefetch_related(Prefetch('mice', queryset=Mouse.objects.order_by('sex', 'tag'))).select_related('mating_pair__male', 'mating_pair__female').all(),
         'mating_pairs': MatingPair.objects.filter(end_date__isnull=True).select_related('male', 'female').all(),
         'litters':      Litter.objects.select_related(
                             'mating_pair__male', 'mating_pair__female', 'mating_pair__cage'

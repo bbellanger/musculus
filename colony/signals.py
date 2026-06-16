@@ -13,7 +13,7 @@ from datetime import date
 def mouse_birth_history(sender, instance, created, **kwargs):
     """Create a Birth event when a new mouse is saved for the first time."""
     if created:
-        History.object.create(
+        History.objects.create(
             mouse=instance,
             event='birth',
             date=instance.dob or date.today(),
