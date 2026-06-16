@@ -274,7 +274,7 @@ class MatingPair(models.Model):
 # Litter model
 class Litter(models.Model):
     mating_pair = models.ForeignKey(MatingPair, on_delete=models.SET_NULL, null=True, related_name="litters")
-    cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True, related_name='mice')
+    cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True, related_name='litters')
     dob = models.DateField()
     notes = models.CharField(max_length=200, null=True, blank=True)
     protocol = models.ForeignKey(Protocol, on_delete=models.SET_NULL, null=True, blank=True, related_name="litters_on_protocol")
