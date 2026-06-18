@@ -269,12 +269,12 @@ def cage_animals(request, pk):
     """
 
     cage = get_object_or_404(Cage, pk=pk)
-    mice = cage.mice.select_related('owner', 'mouse_line', 'coat_color', 'litter').prefetch_related('genotypes_entries__tag').order_by('sex', 'tag')
+    mice = cage.mice.select_related('owner', 'mouse_line', 'coat_color', 'litter').prefetch_related('genotype_entries__tag').order_by('sex', 'tag')
 
     data = []
     for m in mice:
         genotypes = [
-            f"{mg.genotype_tag.label} ({mg.get_zygosity_display()})"
+            f"{mg.tag.label} ({mg.get_zygosity_display()})"
             #for mg in m.genotypes.select_related('genotype_entries').all()
             for mg in m.genotype_entries.all()
         ]

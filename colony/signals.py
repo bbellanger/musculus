@@ -54,14 +54,17 @@ def _capture_old_values(sender, instance, **kwargs):
     """Capture cage and status before save so post_save can detect changes."""
     if instance.pk:
         try:
-            old = sender.objects.get(pk=instance.pk)
+            old = sender.objects.select_related('cage').get(pk=instance.pk)
             instance._old_cage_id = old.cage_id
+            instance._old_cage    = old.cage
             instance._old_status  = old.status
         except sender.DoesNotExist:
             instance._old_cage_id = None
+            instance._old_cage    = None
             instance._old_status  = None
     else:
         instance._old_cage_id = None
+        instance._old_cage    = None
         instance._old_status  = None
 
 
@@ -83,11 +86,15 @@ def _log_mouse_history(sender, instance, created, **kwargs):
         new_status = instance.status
 
         if old_cage != new_cage and new_cage is not None:
+            old_cage_obj = getattr(instance, '_old_cage', None)
+            old_label    = old_cage_obj.cage_id if old_cage_obj else '—'
+            new_label    = instance.cage.cage_id if instance.cage else '—'
             History.objects.create(
                 mouse=instance,
                 event='move',
                 date=timezone.now().date(),
                 cage=instance.cage,
+                notes=f"Moved from cage {old_label} to cage {new_label}",
             )
 
         if old_status != new_status and new_status:
