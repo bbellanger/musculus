@@ -2,6 +2,7 @@ from django.db import models, transaction # For unique auto id attribution
 from django.contrib.auth.models import User
 import uuid, re # For unique auto id attribution
 from datetime import timedelta
+from django.utils import timezone
 
 # Create your models here.
 # Each field needs to be an individual class so to be able to be able
@@ -33,55 +34,55 @@ class GenotypeTag(models.Model):
 
 # Model History added
 # Relate full history for Mouse
-class History(models.Model):
-    """
-    One record per life event for a mouse
-    Covers: birth, move, mating, litter, status changes, vet care, etc.
-    """
+#class History(models.Model):
+#    """
+#    One record per life event for a mouse
+#    Covers: birth, move, mating, litter, status changes, vet care, etc.
+#    """
+#
+#    EVENT_CHOICES = [
+#        ("birth",          'Birth'),
+#        ('move',           'Cage move'),
+#        ('matting',        'Mating'),
+#        ('litter',         'Litter'),
+#        ('status',         'Status change'),
+#        ('vet',            'Vet care'),
+#        ('EEG Surgery',     'EEG surgery experiment'),
+#        ('EEG rec',        'EEG recording'),
+#        ('sleep dep',      'Sleep deprivation experiment'),
+#        ('Sleep rec',      'Sleep recording'),
+#        ('Injury',         'Injury'),
+#        ('death',          'Death'),
+#        ('other',          'Other'),
+#    ]
+#
+#    STATUS_CHOICES = [
+#        ('alive',          'Alive'),
+#        ('breeder',        'Reserved for breeding'),
+#        ('vet',            'Under vet surveillance'),
+#        ('dead',           'Dead'),
+#    ]
+#
+#    mouse = models.ForeignKey('Mouse', on_delete=models.CASCADE, related_name='history')
+#    event = models.CharField(max_length=20, choices=EVENT_CHOICES)
+#    date = models.DateField()
+#
+#    # ----------------------------- Foreign keys for events -------------------------------------#
+#
+#    cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True, related_name='history', help_text='Destination cage for a move event')
+#    litter = models.ForeignKey('Litter', on_delete=models.SET_NULL, null=True, blank=True, related_name='history', help_text='Litter event (link to litter)')
+#    mating_pair = models.ForeignKey('MatingPair', on_delete=models.SET_NULL, null=True, blank=True, related_name='history', help_text='Mating event')
+#    pup_count = models.PositiveSmallIntegerField(null=True, blank=True, help_text='Number of pups (for litter events)')
+#    new_status = models.CharField(max_length=20, choices=EVENT_CHOICES, blank=True, help_text='New.mouse status (for status change events)')
+#    notes = models.TextField(blank=True, help_text='Experiment details, vet notes, injury description, etc.')
+#
+#    class Meta:
+#        ordering = ['-date', '-pk']
+#
+#    def __str__(self):
+#        return f'{self.mouse.tag} - {self.get_event_display()} {self.date})'
 
-    EVENT_CHOICES = [
-        ("birth",          'Birth'),
-        ('move',           'Cage move'),
-        ('matting',        'Mating'),
-        ('litter',         'Litter'),
-        ('status',         'Status change'),
-        ('vet',            'Vet care'),
-        ('EEG Surgery',     'EEG surgery experiment'),
-        ('EEG rec',        'EEG recording'),
-        ('sleep dep',      'Sleep deprivation experiment'),
-        ('Sleep rec',      'Sleep recording'),
-        ('Injury',         'Injury'),
-        ('death',          'Death'),
-        ('other',          'Other'),
-    ]
-
-    STATUS_CHOICES = [
-        ('alive',          'Alive'),
-        ('breeder',        'Reserved for breeding'),
-        ('vet',            'Under vet surveillance'),
-        ('dead',           'Dead'),
-    ]
-
-    mouse = models.ForeignKey('Mouse', on_delete=models.CASCADE, related_name='history')
-    event = models.CharField(max_length=20, choices=EVENT_CHOICES)
-    date = models.DateField()
-
-    # ----------------------------- Foreign keys for events -------------------------------------#
-
-    cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True, related_name='history', help_text='Destination cage for a move event')
-    litter = models.ForeignKey('Litter', on_delete=models.SET_NULL, null=True, blank=True, related_name='history', help_text='Litter event (link to litter)')
-    mating_pair = models.ForeignKey('MatingPair', on_delete=models.SET_NULL, null=True, blank=True, related_name='history', help_text='Mating event')
-    pup_count = models.PositiveSmallIntegerField(null=True, blank=True, help_text='Number of pups (for litter events)')
-    new_status = models.CharField(max_length=20, choices=EVENT_CHOICES, blank=True, help_text='New.mouse status (for status change events)')
-    notes = models.TextField(blank=True, help_text='Experiment details, vet notes, injury description, etc.')
-
-    class Meta:
-        ordering = ['-date', '-pk']
-
-    def __str__(self):
-        return f'{self.mouse.tag} - {self.get_event_display()} {self.date})'
-
-# Model for genotype tag inhiritance
+# ------------------------- Model for genotype tag inhiritance -------------------------
 class MouseGenotype(models.Model):
     mouse = models.ForeignKey("Mouse", on_delete=models.CASCADE, related_name="genotype_entries")
     tag = models.ForeignKey(GenotypeTag, on_delete=models.CASCADE)
@@ -91,7 +92,7 @@ class MouseGenotype(models.Model):
         unique_together = ("mouse", "tag") # one row per mouse+tag combination
 
 
-# Mouse model
+# ------------------------- Mouse model-------------------------
 class Mouse(models.Model):
 
     STATUS_CHOICES = [
@@ -249,7 +250,7 @@ class Mouse(models.Model):
             return self.protocol
         return None
 
-# MatingPair
+# ------------------------- MatingPair -------------------------
 class MatingPair(models.Model):
     male = models.ForeignKey(Mouse, on_delete=models.SET_NULL, null=True, related_name="mated_as_male")
     female = models.ForeignKey(Mouse, on_delete=models.SET_NULL, null=True, related_name="mated_as_female")
@@ -271,7 +272,7 @@ class MatingPair(models.Model):
     def __str__(self):
         return f"{self.male} x {self.female} ({'active' if self.is_active else 'ended'})"
 
-# Litter model
+# ------------------------- Litter model -------------------------
 class Litter(models.Model):
     mating_pair = models.ForeignKey(MatingPair, on_delete=models.SET_NULL, null=True, related_name="litters")
     cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True, related_name='litters')
@@ -289,7 +290,7 @@ class Litter(models.Model):
             return self.mating_pair.female.owner
         return None
 
-# Cage model
+# ------------------------- Cage model -------------------------
 class Cage(models.Model):
     cage_id = models.CharField(max_length=10, unique=True, blank=True)
     cage_location = models.CharField(max_length=10, unique=True, blank=True)
@@ -333,3 +334,57 @@ class Cage(models.Model):
 
     def __str__(self):
         return f"{self.cage_id} - {self.name or 'Unknow line'}"
+
+
+# ------------------------- History model -------------------------#
+class History(models.Model):
+    """
+    One record per life event for a mouse
+    Events are written automatically by signals (birth, move) or manually 
+    by views (litter, status). All fields except mouse + event are optional
+    so each event type only stores what makes sens of it.
+    """
+
+    EVENT_CHOICES = [
+        ('birth',      'Birth'),
+        ('move',       'Cage move'),
+        ('mating',     'Mating'),
+        ('litter',     'Litter'),
+        ('status',     'Status change'),
+        ('vet',        'Vet care'),
+        ('eeg_surg',   'EEG surgery experiment'),
+        ('eeg_rec',    'EEG recording'),
+        ('sleep_dep',  'Sleep deprivation experiment'),
+        ('sleep_rec',  'Sleep recording'),
+        ('injury',     'Injury'),
+        ('death',      'Death'),
+        ('other',      'Other'),
+    ]
+
+    STATUS_CHOICES = [
+        ('alive',    'Alive'),
+        ('breeder',  'Reserved for breeding'),
+        ('vet',      'Under vet surveillance'),
+        ('dead',     'Dead'),
+    ]
+
+    mouse = models.ForeignKey('Mouse', on_delete=models.CASCADE, related_name='history')
+    event = models.CharField(max_length=20, choices=EVENT_CHOICES)
+    date = models.DateField()
+    new_status = models.CharField(max_length=20, choices=STATUS_CHOICES, blank=True)
+    pup_count = models.PositiveSmallIntegerField(null=True, blank=True)
+    cage = models.ForeignKey('Cage', on_delete=models.SET_NULL, null=True, blank=True, related_name='history_events')
+    litter = models.ForeignKey('Litter', on_delete=models.SET_NULL, null=True, blank=True, related_name='history_events')
+    notes = models.TextField(blank=True)
+
+    # Auto-stamp when the record was created
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['date', 'created_at']
+
+    def __str__(self):
+        return f"{self.mouse.tag} - {self.get_event_display()} ({self.date})"
+
+# ------------------------- Signal | auto-log moves and births -------------------------
+# Check in ./colony/signals.py

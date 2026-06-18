@@ -452,3 +452,126 @@ header .sep { flex: 1; }
   border-radius: 3px;
   font-size: 11px;
 }
+
+/* ── Cage detail panel ───────────────────────────────────────── */
+.cage-detail-panel {
+  background: var(--surface2);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px 16px;
+  animation: slideDown 0.18s ease;
+}
+.cage-detail-panel h4 {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.cage-animal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.cage-animal-table th {
+  text-align: left;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hint);
+  border-bottom: 1px solid var(--border);
+}
+.cage-animal-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.cage-animal-table tr:last-child td {
+  border-bottom: none;
+}
+.cage-animal-table .sex-m { color: #4a90d9; font-weight: 600; }
+.cage-animal-table .sex-f { color: #c45c8a; font-weight: 600; }
+.cage-detail-empty {
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 4px 0;
+}
+.cage-detail-loading {
+  color: var(--hint);
+  font-size: 0.82rem;
+  padding: 4px 0;
+}
+ 
+/* ── Mouse history panel ─────────────────────────────────────── */
+.history-panel {
+  background: var(--surface2);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px 16px;
+  animation: slideDown 0.18s ease;
+}
+.history-panel h4 {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.history-table th {
+  text-align: left;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hint);
+  border-bottom: 1px solid var(--border);
+}
+.history-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.history-table tr:last-child td { border-bottom: none; }
+.history-empty {
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 4px 0;
+}
+.history-loading {
+  color: var(--hint);
+  font-size: 0.82rem;
+  padding: 4px 0;
+}
+ 
+/* Event badge colours */
+.ev-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.ev-birth   { background: #d8eee4; color: #2d6a4f; }
+.ev-move    { background: #fdebd8; color: #c45c1a; }
+.ev-litter  { background: #e8eaf6; color: #3949ab; }
+.ev-wean    { background: #fff9c4; color: #f57f17; }
+.ev-status  { background: #fce4ec; color: #c62828; }
+.ev-mating  { background: #f3e5f5; color: #6a1b9a; }
+.ev-note    { background: var(--surface2); color: var(--muted); }
+ 
+/* Row hover cue */
+tr.data-row:hover td { background: var(--surface2); }
+ 
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

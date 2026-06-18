@@ -9,11 +9,13 @@ urlpatterns = [
     path('mouse/create/',        views.mouse_create,    name='mouse_create'),
     path('mouse/<uuid:pk>/update/', views.mouse_update, name='mouse_update'),
     path('mouse/<uuid:pk>/delete/', views.mouse_delete, name='mouse_delete'),
+    path('mouse/<uuid:pk>/history/', views.mouse_history, name='mouse_history'),
 
     # Cage
     path('cage/create/',         views.cage_create,     name='cage_create'),
     path('cage/<int:pk>/update/', views.cage_update,    name='cage_update'),
     path('cage/<int:pk>/delete/', views.cage_delete,    name='cage_delete'),
+    path('cage/<int:pk>/animals/', views.cage_animals, name='cage_animals'),
 
     # MatingPair
     path('matingpair/create/',          views.matingpair_create, name='matingpair_create'),

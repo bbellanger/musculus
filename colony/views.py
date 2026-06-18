@@ -1,8 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Mouse, Cage, MatingPair, Litter, MouseLine, CoatColor, Protocol, GenotypeTag, MouseGenotype
+from .models import Mouse, Cage, MatingPair, Litter, MouseLine, CoatColor, Protocol, GenotypeTag, MouseGenotype, History
 from django.db.models import Prefetch
+
+#Read-only Mouse history import
+from django.http import JsonResponse
+
 
 # ── Shared context helper ──────────────────────────────────────────────────
 
@@ -97,6 +101,7 @@ def mouse_update(request, pk):
         mouse.owner      = _fk(User,      request.POST.get('owner'))
         mouse.cage       = _fk(Cage,      request.POST.get('cage'))
         mouse.phenotype  = request.POST.get('phenotype', '')
+        mouse.status     = request.POST.get('status', 'alive')
         mouse.save()
         _save_genotypes(mouse, request.POST)
     return redirect('index')
@@ -230,6 +235,70 @@ def litter_delete(request, pk):
         litter.delete()
     return redirect('index')
 
+
+# ── Mouse history READONLY ────────────────────────────────────────────────────────────
+@login_required
+def mouse_history(request, pk):
+    """
+    Returns a JSON list of history events for a single mouse.
+    Called by the front-end when the user clicks a mouse row.
+    No Post - read only by design.
+    """
+    mouse = get_object_or_404(Mouse, pk=pk)
+    events = mouse.history.select_related('cage', 'litter').order_by('date', 'created_at')
+
+    data = []
+    for e in events:
+        data.append({
+            'event': e.get_event_display(),
+            'date': str(e.date),
+            'cage': e.cage.cage_id if e.cage else '',
+            'litter': str(e.litter.dob) if e.litter else '',
+            'notes': e.notes,
+        })
+
+    return JsonResponse({'mouse': mouse.tag, 'history': data})
+
+# ── Cage content READONLY ────────────────────────────────────────────────────────────
+
+@login_required
+def cage_animals(request, pk):
+    """
+    Returns a JSON list of every Mouse currently assigned to a cage.
+    Called by the front-end when the user clicks a cage row.
+    """
+
+    cage = get_object_or_404(Cage, pk=pk)
+    mice = cage.mice.select_related('owner', 'mouse_line', 'coat_color', 'litter').prefetch_related('genotypes_entries__tag').order_by('sex', 'tag')
+
+    data = []
+    for m in mice:
+        genotypes = [
+            f"{mg.genotype_tag.label} ({mg.get_zygosity_display()})"
+            #for mg in m.genotypes.select_related('genotype_entries').all()
+            for mg in m.genotype_entries.all()
+        ]
+        data.append({
+            'pk':                        str(m.pk),
+            'tag':                       m.tag,
+            'sex':                       m.get_sex_display() if m.sex else '-',
+            'alt_id':                    m.alt_id or '-',
+            'dob':                       str(m.dob) if m.dob else '-',
+            'wean_date':  str(m.wean_date) if m.dob else '—',
+            'mouse_line': str(m.mouse_line) if m.mouse_line else '—',
+            'coat_color': str(m.coat_color) if m.coat_color else '—',
+            'phenotype':  m.phenotype or '—',
+            'genotypes':  ', '.join(genotypes) or '—',
+            'owner':      m.owner.username if m.owner else '—',
+            'protocol':   str(m.protocol) if m.protocol else '—',
+            'litter':     str(m.litter.dob) if m.litter else '—',
+        })
+
+    return JsonResponse({
+        'cage_id': cage.cage_id,
+        'location': cage.cage_location or '',
+        'animals': data,
+    })
 
 # ── Utility ────────────────────────────────────────────────────────────────
 

@@ -35,7 +35,7 @@
     </button>
   </nav>
 
-  <!-- MOUSE TAB -->
+  <!-- ═══════════════════════════════════════════════════════════ MOUSE TAB -->
   <div class="tab-panel active" id="tab-mouse">
     <div class="panel-header">
       <h2 class="panel-title">Mouse</h2>
@@ -60,6 +60,13 @@
         <option value="bbellanger">bbellanger</option>
         <option value="hkaplan">hkaplan</option>
       </select>
+      <select class="filter-select" onchange="filterTableByStatus(this.value)">
+        <option value="">All statuses</option>
+        <option value="alive">Alive</option>
+        <option value="breeder">Reserved for breeding</option>
+        <option value="vet">Under vet surveillance</option>
+        <option value="dead">Dead</option>
+      </select>
     </div>
 
     <div class="card">
@@ -77,7 +84,7 @@
           <col class="col-proto">
           <col class="col-owner">
           <col class="col-cage">
-          <col class="col-pheno">
+          <col class="col-status">
           <col class="col-actions">
         </colgroup>
         <thead>
@@ -94,7 +101,7 @@
             <th>Protocol</th>
             <th>Owner</th>
             <th>Cage</th>
-            <th>Phenotype</th>
+            <th>Status</th>
             <th></th>
           </tr>
         </thead>
@@ -190,7 +197,14 @@
           </tr>
 
           {% for mouse in mice %}
-          <tr class="data-row" data-id="m{{ mouse.pk }}" data-sex="{{ mouse.sex }}" data-owner="{{ mouse.owner.username }}">
+          <tr class="data-row"
+              data-id="m{{ mouse.pk }}"
+              data-sex="{{ mouse.sex }}"
+              data-owner="{{ mouse.owner.username|default:'' }}"
+              data-status="{{ mouse.status|default:'alive' }}"
+              onclick="toggleMouseHistory('{{ mouse.pk }}')"
+              style="cursor:pointer;"
+              title="Click to view history">
             <td class="mono">{{ mouse.tag }}</td>
             <td>
               {% if mouse.sex == 'M' %}
@@ -217,15 +231,29 @@
             <td>{{ mouse.protocol|default:"-" }}</td>
             <td>{{ mouse.owner|default:"-" }}</td>
             <td class="mono">{{ mouse.cage.cage_id|default:"-" }}</td>
-            <td class="notes-text">{{ mouse.phenotype|default:"-" }}</td>
+            <td>
+              <span class="status-badge status-{{ mouse.status|default:'alive' }}">
+                {{ mouse.get_status_display|default:"Alive" }}
+              </span>
+            </td>
             <td>
               <div class="actions-cell">
-                <button class="btn btn-secondary btn-sm btn-icon" title="Edit" onclick="toggleEdit('m{{ mouse.pk }}')">✎</button>
+                <button class="btn btn-secondary btn-sm btn-icon" title="Edit"
+                        onclick="event.stopPropagation(); toggleEdit('m{{ mouse.pk }}')">✎</button>
                 <form method="post" action="{% url 'mouse_delete' mouse.pk %}" style="display:inline">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-danger btn-sm btn-icon" title="Delete"
                     onclick="return confirm('Delete {{ mouse.tag }}?')">x</button>
                 </form>
+              </div>
+            </td>
+          </tr>
+
+          <!-- History panel row -->
+          <tr class="mouse-history-row" id="mouse-history-{{ mouse.pk }}" style="display:none;">
+            <td colspan="14" style="padding:0;">
+              <div class="history-panel" id="history-panel-{{ mouse.pk }}">
+                <div class="history-loading">Loading history…</div>
               </div>
             </td>
           </tr>
@@ -317,6 +345,15 @@
                     <label class="field-label">Phenotype</label>
                     <input class="field-input" name="phenotype" value="{{ mouse.phenotype }}" />
                   </div>
+                  <div class="field-group">
+                    <label class="field-label">Status</label>
+                    <select class="field-select" name="status">
+                      <option value="alive"   {% if mouse.status == 'alive'   %}selected{% endif %}>Alive</option>
+                      <option value="breeder" {% if mouse.status == 'breeder' %}selected{% endif %}>Reserved for breeding</option>
+                      <option value="vet"     {% if mouse.status == 'vet'     %}selected{% endif %}>Under vet surveillance</option>
+                      <option value="dead"    {% if mouse.status == 'dead'    %}selected{% endif %}>Dead</option>
+                    </select>
+                  </div>
                   <!-- Genotypes inline -->
                   <div class="genotype-wrap">
                     <div class="genotype-wrap-header">
@@ -367,7 +404,7 @@
     </div>
   </div>
 
-  <!-- CAGE TAB -->
+  <!-- ════════════════════════════════════════════════════════════ CAGE TAB -->
   <div class="tab-panel" id="tab-cage">
     <div class="panel-header">
       <h2 class="panel-title">Cage</h2>
@@ -395,6 +432,8 @@
           </tr>
         </thead>
         <tbody id="cage-tbody">
+
+          <!-- New cage form row -->
           <tr class="edit-row" id="edit-cage-new">
             <td colspan="6">
               <form method="post" action="{% url 'cage_create' %}">
@@ -429,8 +468,14 @@
               </form>
             </td>
           </tr>
+
           {% for cage in cages %}
-          <tr class="data-row" data-id="c{{ cage.pk }}">
+          <!-- Clickable cage summary row -->
+          <tr class="data-row"
+              data-id="c{{ cage.pk }}"
+              onclick="toggleCageDetail('{{ cage.pk }}')"
+              style="cursor:pointer;"
+              title="Click to see all animals in this cage">
             <td class="mono">{{ cage.cage_id }}</td>
             <td class="mono">{{ cage.cage_location|default:"-" }}</td>
             <td class="mono">
@@ -443,29 +488,32 @@
                 <span class="derived-chip" style="color:var(--hint)">- no pair</span>
               {% endif %}
             </td>
-            
             <td>
-              {% for mouse in cage.mice.all %}
-                <span class="derived-chip" style="margin:2px;">
-                  {{ mouse.tag }}
-                  {% if mouse.sex == 'M' %}♂{% else %}♀{% endif %}
-                </span>
-                  {% empty %}
-                <span class="derived-chip" style="color:var(--hint)">—</span>
-                  {% endfor %}
+              <span class="derived-chip">{{ cage.mice.count }} mice</span>
             </td>
-
             <td>
               <div class="actions-cell">
-                <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('c{{ cage.pk }}')">✎</button>
+                <button class="btn btn-secondary btn-sm btn-icon"
+                        onclick="event.stopPropagation(); toggleEdit('c{{ cage.pk }}')">✎</button>
                 <form method="post" action="{% url 'cage_delete' cage.pk %}" style="display:inline">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-danger btn-sm btn-icon"
-                    onclick="return confirm('Delete {{ cage.cage_id }}?')">x</button>
+                          onclick="event.stopPropagation(); return confirm('Delete {{ cage.cage_id }}?')">x</button>
                 </form>
               </div>
             </td>
           </tr>
+
+          <!-- Animals detail panel (hidden by default, populated by JS) -->
+          <tr id="cage-detail-{{ cage.pk }}" style="display:none;">
+            <td colspan="6" style="padding:0;">
+              <div id="cage-panel-{{ cage.pk }}" class="cage-detail-panel">
+                <div class="cage-detail-loading">Loading…</div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Edit row -->
           <tr class="edit-row" id="edit-c{{ cage.pk }}">
             <td colspan="6">
               <form method="post" action="{% url 'cage_update' cage.pk %}">
@@ -505,12 +553,13 @@
           {% empty %}
           <tr class="empty-row"><td colspan="6">No cages recorded yet.</td></tr>
           {% endfor %}
+
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- MATING PAIR TAB -->
+  <!-- ══════════════════════════════════════════════════ MATING PAIR TAB -->
   <div class="tab-panel" id="tab-matingpair">
     <div class="panel-header">
       <h2 class="panel-title">Mating Pair</h2>
@@ -647,7 +696,7 @@
     </div>
   </div>
 
-  <!-- LITTER TAB -->
+  <!-- ══════════════════════════════════════════════════════ LITTER TAB -->
   <div class="tab-panel" id="tab-litter">
     <div class="panel-header">
       <h2 class="panel-title">Litter</h2>
@@ -677,8 +726,6 @@
           </tr>
         </thead>
         <tbody id="litter-tbody">
-
-          <!-- New litter form row -->
           <tr class="edit-row" id="edit-litter-new">
             <td colspan="8">
               <form method="post" action="{% url 'litter_create' %}">
@@ -736,13 +783,10 @@
             </td>
           </tr>
 
-          <!-- Litter edit row -->
           <tr class="edit-row" id="edit-l{{ litter.pk }}">
             <td colspan="8">
               <form method="post" action="{% url 'litter_update' litter.pk %}">
                 {% csrf_token %}
-
-                <!-- Litter fields -->
                 <div class="form-grid">
                   <div class="field-group">
                     <label class="field-label">Mating Pair</label>
@@ -776,7 +820,6 @@
                   </div>
                 </div>
 
-                <!-- Pup inline table -->
                 {% if litter.pups.all %}
                 <div style="border-top:1.5px solid var(--border); margin-top:16px; padding-top:14px;">
                   <div style="font-family:'Space Mono',monospace; font-size:11px; font-weight:700;
@@ -818,7 +861,6 @@
                             <option value="F" {% if pup.sex == 'F' %}selected{% endif %}>F</option>
                           </select>
                         </td>
-
                         <td style="padding:5px 8px; border-bottom:1px solid var(--border);">
                           <select class="field-select" name="pup_{{ pup.pk }}_alt_id" style="width:100px;">
                             <option value="" {% if not pup.alt_id %}selected{% endif %}>-</option>
@@ -827,7 +869,6 @@
                             {% endfor %}
                           </select>
                         </td>
-
                         <td style="padding:5px 8px; border-bottom:1px solid var(--border);">
                           <select class="field-select" name="pup_{{ pup.pk }}_coat_color" style="width:120px;">
                             <option value="">-</option>
@@ -836,7 +877,6 @@
                             {% endfor %}
                           </select>
                         </td>
-
                         <td style="padding:5px 8px; border-bottom:1px solid var(--border);">
                           <select class="field-select" name="pup_{{ pup.pk }}_cage" style="width:100px;">
                             <option value="">-</option>
