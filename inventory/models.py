@@ -45,6 +45,10 @@ class Order(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def total_amount(self):
+        return sum(oi.full_amount or 0 for oi in self.orderitems_set.all())
+
 class OrderItems(models.Model):
     UNIT_CHOICES = {"/box": "per box",
         "/case": "per case",
@@ -83,7 +87,7 @@ class OrderItems(models.Model):
     price = models.CharField(max_length=15, null=True, blank=True, db_comment="$$")
     full_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, db_comment="price x quantity")
     comment     = models.CharField(max_length=250, null=True, blank=True)
-    order       = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='orderitems_set')
+    order       = models.ForeignKey(Order,null=True, blank=True, on_delete=models.CASCADE, related_name='orderitems_set')
 
     def __str__(self):
         return self.item.name

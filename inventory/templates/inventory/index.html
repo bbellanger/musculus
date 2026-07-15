@@ -147,6 +147,7 @@
             <th>Requested By</th>
             <th>Items</th>
             <th>Status</th>
+            <th>Total</th>
             <th></th>
           </tr>
         </thead>
@@ -164,6 +165,9 @@
               </span>
             </td>
             <td>{{ order.get_status_display }}</td>
+            
+            <td>$ {{ order.total_amount }}</td>
+
             <td style="text-align:right;">
               <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleEdit('o{{ order.pk }}')">✎</button>
               <form method="post" action="{% url 'inventory:order_delete' order.pk %}" style="display:inline;">
@@ -279,9 +283,9 @@
                     <tr class="total-row">
                       <td colspan="8" style="text-align:right; padding-right:16px;">Order Total</td>
                       <td colspan="3">
-                        $ {% with order.orderitems_set.all as ois %}
-                            {% for oi in ois %}{{ oi.full_amount|default:0 }}{% if not forloop.last %}+{% endif %}{% endfor %}
-                          {% endwith %}
+                        $ {{ order.total_amount }} <!-- {% with order.orderitems_set.all as ois %}
+                            ({% for oi in ois %}{{ oi.full_amount|default:0 }}{% if not forloop.last %}+{% endif %}{% endfor %})
+                          {% endwith %} -->
                       </td>
                     </tr>
                   </tbody>

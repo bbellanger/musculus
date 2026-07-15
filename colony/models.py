@@ -212,7 +212,7 @@ class Mouse(models.Model):
     litter = models.ForeignKey('Litter', on_delete=models.SET_NULL, null=True, blank=True, related_name="pups")
 
     ## Mouse - Foreign Keys
-    protocol = models.ForeignKey(Protocol, on_delete=models.SET_NULL, null=True, blank=True, related_name="mice")
+    protocol = models.ForeignKey(Protocol, on_delete=models.SET_NULL, default='4606', null=True, blank=True, related_name="mice")
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="mice")
     mouse_line = models.ForeignKey(MouseLine, on_delete=models.SET_NULL, null=True, blank=True, related_name="mice")
     coat_color = models.ForeignKey(CoatColor, on_delete=models.SET_NULL, null=True, blank=True, related_name="mice")
@@ -335,6 +335,8 @@ class Cage(models.Model):
     def __str__(self):
         return f"{self.cage_id} - {self.name or 'Unknow line'}"
 
+    def unique_mouse_lines(self):
+        return sorted(set(mouse.mouse_line for mouse in self.mice.all() if mouse.mouse_line))
 
 # ------------------------- History model -------------------------#
 class History(models.Model):

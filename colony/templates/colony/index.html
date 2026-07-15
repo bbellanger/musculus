@@ -426,8 +426,10 @@
             <th>Cage ID <span class="computed-label">auto</span></th>
             <th>Location</th>
             <th>Mating Pair</th>
-            <th>Name (MouseLine) <span class="computed-label">@prop</span></th>
+            <th>Progeny Genotype <span class="computed-label">@prop</span></th>
             <th>Mice <span class="computed-label">derived</span></th>
+            <th>Mouse Line</th>
+            <th></th>
             <th></th>
           </tr>
         </thead>
@@ -460,6 +462,7 @@
                     <label class="field-label">Name <span class="computed-label">@prop - derived from parents</span></label>
                     <input class="field-input" placeholder="Derived on save" readonly />
                   </div>
+
                   <div class="form-actions">
                     <button type="submit" class="btn btn-primary btn-sm">Save</button>
                     <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEdit('cage-new')">Cancel</button>
@@ -491,6 +494,20 @@
             <td>
               <span class="derived-chip">{{ cage.mice.count }} mice</span>
             </td>
+
+            <td>
+              <!-- <span class="derived-chip">{% if cage.mating_pair %}{{ cage.mating_pair.male.mouse_line }} {% endif %} </span> -->
+
+                <!-- {% for line in cage.mice.all|dictsort:"mouse_line"|dictsortreversed:"mouse_line" %}
+                {% endfor %}-->
+                {% for line in cage.unique_mouse_lines %}
+                  <span class="derived-chip">{{ line }}</span>
+                {% empty %}
+                  <span class="derived-chip" style="color:var(--hint)">-</span>
+                {% endfor %}
+
+            </td>
+
             <td>
               <div class="actions-cell">
                 <button class="btn btn-secondary btn-sm btn-icon"
@@ -584,6 +601,7 @@
             <th>End Date</th>
             <th>Active <span class="computed-label">@prop</span></th>
             <th>Owner <span class="computed-label">@prop - female</span></th>
+            <th>Mouse Line</th>
             <th>Litters</th>
             <th></th>
           </tr>
@@ -635,6 +653,7 @@
               {% else %}<span class="badge badge-inactive">Inactive</span>{% endif %}
             </td>
             <td>{{ mp.owner|default:"-" }}</td>
+            <td><span class="derived-chip">{{ mp.female.mouse_line }}</span></td>
             <td>{{ mp.litters.count }}</td>
             <td>
               <div class="actions-cell">

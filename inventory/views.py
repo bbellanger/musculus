@@ -49,6 +49,7 @@ def order_update(request, pk):
     if request.method == 'POST':
         order.name         = request.POST.get('name', '')
         order.requested_by = _fk(User, request.POST.get('requested_by'))
+        # order.total        = sum(oi.full_amount or 0 for oi in order.orderitem_set.all())
         order.save()
     return redirect('inventory:index')
 
