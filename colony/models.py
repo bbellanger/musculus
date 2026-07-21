@@ -14,6 +14,10 @@ class Protocol(models.Model):
     def __str__(self):
         return self.name
 
+def _default_protocol():
+    return Protocol.objects.filter(name="4606").values_list("pk", flat=True).first()
+
+
 class MouseLine(models.Model):
     name = models.CharField(max_length=50)
 
@@ -209,10 +213,11 @@ class Mouse(models.Model):
     sex = models.CharField(max_length=1, choices=SEX_CHOICES, null=True, blank=True)
     alt_id = models.CharField(max_length=7, choices=ALT_ID, null=True, blank=True)
     dob = models.DateField()
-    litter = models.ForeignKey('Litter', on_delete=models.SET_NULL, null=True, blank=True, related_name="pups")
+    litter = models.ForeignKey('Litter', on_delete=models.CASCADE, null=True, blank=True, related_name="pups")
 
     ## Mouse - Foreign Keys
-    protocol = models.ForeignKey(Protocol, on_delete=models.SET_NULL, default='4606', null=True, blank=True, related_name="mice")
+    #protocol = models.ForeignKey(Protocol, on_delete=models.SET_NULL, default='4606', null=True, blank=True, related_name="mice")
+    protocol = models.ForeignKey(Protocol, on_delete=models.SET_NULL, default=_default_protocol, null=True, blank=True, related_name="mice")
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="mice")
     mouse_line = models.ForeignKey(MouseLine, on_delete=models.SET_NULL, null=True, blank=True, related_name="mice")
     coat_color = models.ForeignKey(CoatColor, on_delete=models.SET_NULL, null=True, blank=True, related_name="mice")

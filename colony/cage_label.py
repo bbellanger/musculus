@@ -20,8 +20,8 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Table, TableStyle
 
 LABEL_WIDTH = 4 * inch
 LABEL_HEIGHT = 6 * inch
-MARGIN_X = 3 * cm
-MARGIN_Y = 2 * cm
+MARGIN_X = 1.5 * cm  # half of the earlier 3cm/2cm version
+MARGIN_Y = 1 * cm
 
 
 def _p(text, style):
@@ -41,14 +41,14 @@ def _genotype_summary(mouse):
 
 
 COLUMNS = [
-    ("ID", lambda m: m.tag, 0.5 * inch),
-    ("Alt", lambda m: m.alt_id, 0.42 * inch),
+    ("Animal", lambda m: m.tag, 0.5 * inch),
+    ("Alt ID", lambda m: m.alt_id, 0.42 * inch),
     ("DOB", lambda m: m.dob.strftime("%m/%d/%y") if m.dob else "", 0.42 * inch),
     ("Line", lambda m: m.mouse_line.name if m.mouse_line_id else "", 0.42 * inch),
-    ("Geno", _genotype_summary, 0.62 * inch),
+    ("Genotype", _genotype_summary, 0.62 * inch),
     ("Sex", lambda m: m.sex, 0.22 * inch),
-    ("Proto", lambda m: m.protocol.name if m.protocol_id else "", 0.42 * inch),
-    ("Stat", lambda m: m.get_status_display(), 0.42 * inch),
+    ("Protocol", lambda m: m.protocol.name if m.protocol_id else "", 0.42 * inch),
+    ("Status", lambda m: m.get_status_display(), 0.42 * inch),
 ]
 
 
@@ -74,7 +74,7 @@ def render_cage_label_pdf(cage):
         "CagePair", parent=styles["Normal"], fontSize=8.5,
         alignment=TA_CENTER, spaceAfter=8, textColor=colors.HexColor("#555555"),
     )
-    cell_style = ParagraphStyle("Cell", parent=styles["Normal"], fontSize=4.2, leading=4.8)
+    cell_style = ParagraphStyle("Cell", parent=styles["Normal"], fontSize=5.6, leading=6.6)
     header_cell_style = ParagraphStyle(
         "HeaderCell", parent=cell_style, fontName="Helvetica-Bold", textColor=colors.white,
     )
@@ -114,10 +114,10 @@ def render_cage_label_pdf(cage):
         ("GRID", (0, 0), (-1, -1), 0.4, colors.black),
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#333333")),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, -1), 1),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
-        ("LEFTPADDING", (0, 0), (-1, -1), 1),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 1),
+        ("TOPPADDING", (0, 0), (-1, -1), 1.5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 2),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 2),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f2f2f2")]),
     ]))
     story.append(table)
