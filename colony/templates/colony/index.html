@@ -508,12 +508,27 @@
 
             </td>
 
+
             <td>
               <div class="actions-cell">
+
+                <!-- Print a cage card  -->
+                <a class="btn btn-secondary btn-sm btn-icon" href="{% url 'cage_label_print' cage.pk %}" target="_blank" onclick="event.stopPropagation();" title="Print cage>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" style="vertical-align:-2px;">
+                    <path d="M6 9V3h12v6"/>
+                      <rect x="4" y="9" width="16" height="8" rx="1"/>
+                    <path d="M6 17v4h12v-4"/>
+                      <circle cx="17" cy="12.5" r="0.8" fill="currentColor" stroke="none"/>
+                  </svg>
+                </a>
+
                 <button class="btn btn-secondary btn-sm btn-icon"
                         onclick="event.stopPropagation(); toggleEdit('c{{ cage.pk }}')">✎</button>
                 <form method="post" action="{% url 'cage_delete' cage.pk %}" style="display:inline">
                   {% csrf_token %}
+
                   <button type="submit" class="btn btn-danger btn-sm btn-icon"
                           onclick="event.stopPropagation(); return confirm('Delete {{ cage.cage_id }}?')">x</button>
                 </form>
@@ -529,6 +544,7 @@
               </div>
             </td>
           </tr>
+
 
           <!-- Edit row -->
           <tr class="edit-row" id="edit-c{{ cage.pk }}">

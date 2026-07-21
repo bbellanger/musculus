@@ -17,6 +17,10 @@ urlpatterns = [
     path('cage/<int:pk>/delete/', views.cage_delete,    name='cage_delete'),
     path('cage/<int:pk>/animals/', views.cage_animals, name='cage_animals'),
 
+    # Thermal label generation
+    path('cages/<int:pk>/label.pdf', views.cage_label_pdf, name='cage_label_pdf'),
+    path('cages/<int:pk>/print-label/', views.cage_label_print, name='cage_label_print'),
+
     # MatingPair
     path('matingpair/create/',          views.matingpair_create, name='matingpair_create'),
     path('matingpair/<int:pk>/update/', views.matingpair_update, name='matingpair_update'),

@@ -4,8 +4,13 @@ from django.contrib.auth.models import User
 from .models import Mouse, Cage, MatingPair, Litter, MouseLine, CoatColor, Protocol, GenotypeTag, MouseGenotype, History
 from django.db.models import Prefetch
 
+# Thermal label generator
+from django.views.decorators.http import require_GET
+from django.views.decorators.clickjacking import xframe_options_exempt
+from .cage_label import render_cage_label_pdf
+
 #Read-only Mouse history import
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 
 
 # ── Shared context helper ──────────────────────────────────────────────────
@@ -237,6 +242,7 @@ def litter_delete(request, pk):
 
 
 # ── Mouse history READONLY ────────────────────────────────────────────────────────────
+
 @login_required
 def mouse_history(request, pk):
     """
@@ -299,6 +305,29 @@ def cage_animals(request, pk):
         'location': cage.cage_location or '',
         'animals': data,
     })
+
+# __ Thermal Cage Label _____________________________________________________
+
+@login_required
+@require_GET
+@xframe_options_exempt
+def cage_label_pdf(request, pk):
+    """Returns the raw 4x6in label PDF for one cage.
+    Exempt from X-Frame-Options so print_label.html can embed it in an
+    iframe (same-origin) to trigger the browser print dialog automatically."""
+    cage = get_object_or_404(Cage, pk=pk)
+    pdf_buffer = render_cage_label_pdf(cage)
+    response = HttpResponse(pdf_buffer, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="cage_{cage.cage_id}_label.pdf"'
+    return response
+
+
+@login_required
+@require_GET
+def cage_label_print(request, pk):
+    """Opens a page that embeds the label PDF and auto-triggers the print dialog."""
+    cage = get_object_or_404(Cage, pk=pk)
+    return render(request, "colony/print_label.html", {"cage": cage})
 
 # ── Utility ────────────────────────────────────────────────────────────────
 

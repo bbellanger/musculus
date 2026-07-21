@@ -21,7 +21,12 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path("", include("colony.urls")),
+    # Thermal label generation
+#    path('cages/<int:pk>/label.pdf', views.cage_label_pdf, name='cage_label_pdf'),
+#    path('cages/<int:pk>/print-label/', views.cage_label_print, name='cage_label_print'),
+    # Inventory
     path('inventory/', include('inventory.urls', namespace='inventory')),
+    # Administration
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html')),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('password-reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
