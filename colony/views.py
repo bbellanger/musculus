@@ -300,13 +300,38 @@ def cage_animals(request, pk):
             'litter':     str(m.litter.dob) if m.litter else '—',
         })
 
-    return JsonResponse({
+    response = JsonResponse({
         'cage_id': cage.cage_id,
         'location': cage.cage_location or '',
         'animals': data,
     })
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    return response
 
 # __ Thermal Cage Label _____________________________________________________
+
+#@login_required
+#@require_GET
+#@xframe_options_exempt
+#def cage_label_pdf(request, pk):
+#    """Returns the raw 4x6in label PDF for one cage.
+#    Exempt from X-Frame-Options so print_label.html can embed it in an
+#    iframe (same-origin) to trigger the browser print dialog automatically."""
+#    cage = get_object_or_404(Cage, pk=pk)
+#    pdf_buffer = render_cage_label_pdf(cage)
+#    response = HttpResponse(pdf_buffer, content_type="application/pdf")
+#    response["Content-Disposition"] = f'inline; filename="cage_{cage.cage_id}_label.pdf"'
+#    return response
+#
+#
+#@login_required
+#@require_GET
+#def cage_label_print(request, pk):
+#    """Opens a page that embeds the label PDF and auto-triggers the print dialog."""
+#    cage = get_object_or_404(Cage, pk=pk)
+#    return render(request, "colony/print_label.html", {"cage": cage})
 
 @login_required
 @require_GET
@@ -314,11 +339,16 @@ def cage_animals(request, pk):
 def cage_label_pdf(request, pk):
     """Returns the raw 4x6in label PDF for one cage.
     Exempt from X-Frame-Options so print_label.html can embed it in an
-    iframe (same-origin) to trigger the browser print dialog automatically."""
+    iframe (same-origin) to trigger the browser print dialog automatically.
+    Explicit no-cache headers so browser/CDN/proxy never serve a stale PDF —
+    this endpoint must always reflect the cage's current contents."""
     cage = get_object_or_404(Cage, pk=pk)
     pdf_buffer = render_cage_label_pdf(cage)
     response = HttpResponse(pdf_buffer, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="cage_{cage.cage_id}_label.pdf"'
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
     return response
 
 
@@ -328,6 +358,7 @@ def cage_label_print(request, pk):
     """Opens a page that embeds the label PDF and auto-triggers the print dialog."""
     cage = get_object_or_404(Cage, pk=pk)
     return render(request, "colony/print_label.html", {"cage": cage})
+
 
 # ── Utility ────────────────────────────────────────────────────────────────
 
