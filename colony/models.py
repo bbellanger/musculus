@@ -21,6 +21,9 @@ def _default_protocol():
 class MouseLine(models.Model):
     name = models.CharField(max_length=50)
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return self.name
 
@@ -341,7 +344,12 @@ class Cage(models.Model):
         return f"{self.cage_id} - {self.name or 'Unknow line'}"
 
     def unique_mouse_lines(self):
-        return sorted(set(mouse.mouse_line for mouse in self.mice.all() if mouse.mouse_line))
+        # Returned 500 when changing mouseline
+        # return sorted(set(mouse.mouse_line for mouse in self.mice.all() if mouse.mouse_line))
+        return sorted(
+            {mouse.mouse_line for mouse in self.mice.all() if mouse.mouse_line},
+            key=lambda ml: ml.name
+        )
 
 # ------------------------- History model -------------------------#
 class History(models.Model):
