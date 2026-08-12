@@ -291,7 +291,7 @@ def cage_animals(request, pk):
             'alt_id':                    m.alt_id or '-',
             'dob':                       str(m.dob) if m.dob else '-',
             'wean_date':  str(m.wean_date) if m.dob else '—',
-            'mouse_line': str(m.mouse_line) if m.mouse_line else '—',
+            'mouse_line': str(m.mouse_line) if (m.mouse_line and not genotypes) else '—',
             'coat_color': str(m.coat_color) if m.coat_color else '—',
             'phenotype':  m.phenotype or '—',
             'genotypes':  ', '.join(genotypes) or '—',

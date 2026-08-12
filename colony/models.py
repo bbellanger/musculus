@@ -346,10 +346,20 @@ class Cage(models.Model):
     def unique_mouse_lines(self):
         # Returned 500 when changing mouseline
         # return sorted(set(mouse.mouse_line for mouse in self.mice.all() if mouse.mouse_line))
-        return sorted(
-            {mouse.mouse_line for mouse in self.mice.all() if mouse.mouse_line},
-            key=lambda ml: ml.name
-        )
+        #return sorted(
+        #    {mouse.mouse_line for mouse in self.mice.all() if mouse.mouse_line},
+        #    key=lambda ml: ml.name
+        #)
+        labels = set()
+        for mouse in self.mice.all():
+            genotype_labels = sorted(
+                mouse.genotype_entries.values_list('tag__label', flat=True).distinct()
+            )
+            if genotype_labels:
+                labels.add(" ; ".join(genotype_labels))
+            elif mouse.mouse_line:
+                labels.add(mouse.mouse_line.name)
+        return sorted(labels)
 
 # ------------------------- History model -------------------------#
 class History(models.Model):
