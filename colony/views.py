@@ -21,8 +21,9 @@ def _base_context():
                             'mouse_line', 'coat_color', 'protocol', 'owner', 'cage', 'litter'
                         ).prefetch_related('genotype_entries__tag').all(),
         #'cages':        Cage.objects.select_related(Prefetch('mice', queryset=Mouse.objects.order_by('sex', 'tag'))).select_related('mating_pair__male', 'mating_pair__female').all(),
-        'cages': Cage.objects.prefetch_related(Prefetch('mice', queryset=Mouse.objects.order_by('sex', 'tag'))).select_related('mating_pair__male', 'mating_pair__female').all(),
-        'mating_pairs': MatingPair.objects.filter(end_date__isnull=True).select_related('male', 'female').all(),
+        #'cages': Cage.objects.prefetch_related(Prefetch('mice', queryset=Mouse.objects.order_by('sex', 'tag'))).select_related('mating_pair__male', 'mating_pair__female').all(),
+        'cages': Cage.objects.prefetch_related(Prefetch('mice', queryset=Mouse.objects.exclude(status='dead').order_by('sex', 'tag'))).select_related('mating_pair__male', 'mating_pair__female').all(),
+        'mating_pairs': MatingPair.objects.select_related('male', 'female').all(),
         'litters':      Litter.objects.select_related(
                             'mating_pair__male', 'mating_pair__female', 'mating_pair__cage'
                         ).prefetch_related('pups').all(),
@@ -275,7 +276,7 @@ def cage_animals(request, pk):
     """
 
     cage = get_object_or_404(Cage, pk=pk)
-    mice = cage.mice.select_related('owner', 'mouse_line', 'coat_color', 'litter').prefetch_related('genotype_entries__tag').order_by('sex', 'tag')
+    mice = cage.mice.exclude(status="dead").select_related('owner', 'mouse_line', 'coat_color', 'litter').prefetch_related('genotype_entries__tag').order_by('sex', 'tag')
 
     data = []
     for m in mice:
