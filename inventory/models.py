@@ -80,7 +80,7 @@ class OrderItems(models.Model):
         "µL": "Microlitters",
     }
     item        = models.ForeignKey('Item', on_delete=models.CASCADE, null=False, blank=False)
-    size_unit   = models.DecimalField(max_digits=5, decimal_places=2)
+    size_unit   = models.DecimalField(max_digits=9, decimal_places=2)
     unit        = models.CharField(max_length=15, null=True, blank=True, choices=UNIT_CHOICES)
     quantity    = models.PositiveIntegerField(default=1)
     #price       = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, db_comment="$$")
