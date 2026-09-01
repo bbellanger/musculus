@@ -26,6 +26,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ['SECRET_KEY']
 
+# Loading environ Slack credentials
+SLACK_BOT_TOKEN = os.environ.get('SLACK_BOT_TOKEN', default=None)
+SLACK_CHANNEL = os.environ.get('SLACK_CHANNEL', default=None)
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 

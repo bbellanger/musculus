@@ -8,6 +8,8 @@ from django.dispatch import receiver
 from .models import History
 from django.utils import timezone
 
+# For the slack notification
+from notifications.slack import send_slack_notification
 
 #@receiver(pre_save, sender='colony.Mouse')
 #def _capture_old_cage(sender, instance, **kwargs):
@@ -122,3 +124,12 @@ def _log_litter_history(sender, instance, created, **kwargs):
                     litter=instance,
                     pup_count=instance.pups.count() or None,
                 )
+
+@receiver(post_save, sender='colony.Litter')
+def notify_slack_on_litter_created(sender, instance, created, **kwargs):
+    if not created:
+        return # notif on creation only
+
+    send_slack_notification(
+        f"🐭 A new litter of {instance.pups.count()} pups was born in {instance.dob} - cage#{instance.cage}"
+)

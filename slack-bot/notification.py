@@ -41,4 +41,4 @@ if __name__ == "__main__":
     if not SLACK_TOKEN:
         raise ValueError("SLACK_BOT_TOKEN environ,ent variable is missing")
 
-    send_slack_notification("🚀 Hello from Python! Your automated notification script is operational.")
+    send_slack_notification("🚀 Hello from musculus-bot! /n Your Musculus automated notification script is operational.")

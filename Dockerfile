@@ -12,7 +12,8 @@ RUN pip install --no-cache-dir gunicorn
 COPY . .
 
 RUN python manage.py collectstatic --noinput
-RUN python ./slack-bot/notification.py
+#RUN python ./slack-bot/notification.py
+# Replaced with cleaner `post_save` hook version
 
 EXPOSE 8000
 
