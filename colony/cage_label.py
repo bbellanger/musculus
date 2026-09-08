@@ -32,23 +32,29 @@ def _p(text, style):
 
 
 def _genotype_summary(mouse):
-    """'Cre:HOM, fl/fl:HET' style summary from the MouseGenotype through model."""
-    parts = [
-        f"{mg.tag.label}:{mg.zygosity}"
-        for mg in mouse.genotype_entries.select_related("tag").all()
-    ]
-    return ", ".join(parts)
+    """'Cre:HOM, fl/fl:HET' style summary from the MouseGenotype through model.
+        C56/BL6 if none."""
+    #parts = [
+    #    f"{mg.tag.label}:{mg.zygosity}"
+    #    for mg in mouse.genotype_entries.select_related("tag").all()
+    #]
+    #return ", ".join(parts)
+    entries = mouse.genotype_entries.select_related("tag").all()
+    if not entries:
+        return mouse.mouse_line.name if mouse.mouse_line_id else "C57BL/6"
+    return ", ".join(f"{mg.tag.label}:{mg.zygosity}" for mg in entries)
 
 
 COLUMNS = [
-    ("Animal", lambda m: m.tag, 0.5 * inch),
-    ("Alt ID", lambda m: m.alt_id, 0.42 * inch),
-    ("DOB", lambda m: m.dob.strftime("%m/%d/%y") if m.dob else "", 0.42 * inch),
-    ("Line", lambda m: m.mouse_line.name if m.mouse_line_id else "", 0.42 * inch),
-    ("Genotype", _genotype_summary, 0.62 * inch),
-    ("Sex", lambda m: m.sex, 0.22 * inch),
-    ("Protocol", lambda m: m.protocol.name if m.protocol_id else "", 0.42 * inch),
-    ("Status", lambda m: m.get_status_display(), 0.42 * inch),
+    ("Animal", lambda m: m.tag, 0.67 * inch),
+    ("Sex", lambda m: m.sex, 0.67 * inch),
+    ("Alt ID", lambda m: m.alt_id, 0.67 * inch),
+    ("DOB", lambda m: m.dob.strftime("%m/%d/%y") if m.dob else "", 0.67 * inch),
+    ("Strain", lambda m: _genotype_summary(m), 0.67 * inch),
+    #("Line", lambda m: m.mouse_line.name if m.mouse_line_id else "", 0.42 * inch),
+    #("Genotype", _genotype_summary, 0.62 * inch),
+    #("Protocol", lambda m: m.protocol.name if m.protocol_id else "", 0.42 * inch),
+    #("Status", lambda m: m.get_status_display(), 0.42 * inch),
 ]
 
 
@@ -82,6 +88,7 @@ def render_cage_label_pdf(cage):
     story = [
         _p(f"Cage {cage.cage_id}", header_style),
         _p(f"Location: {cage.cage_location}", sub_style),
+        _p(f"KAPLAN | CCM:7053 | PCL: 4606", sub_style),
     ]
     if cage.mating_pair_id:
         mp = cage.mating_pair
@@ -93,6 +100,7 @@ def render_cage_label_pdf(cage):
         ))
     else:
         story.append(_p(" ", pair_style))
+
 
     header_row = [_p(label, header_cell_style) for label, _, _ in COLUMNS]
     data = [header_row]

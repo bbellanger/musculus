@@ -426,6 +426,7 @@
             <th>Cage ID <span class="computed-label">auto</span></th>
             <th>Location</th>
             <th>Mating Pair</th>
+            <th>Oldest Mouse</th>
             <th>Progeny Genotype <span class="computed-label">@prop</span></th>
             <th>Mice <span class="computed-label">derived</span></th>
             <th>Mouse Line</th>
@@ -458,6 +459,12 @@
                       {% endfor %}
                     </select>
                   </div>
+
+                  <div class="field-group">
+                    <label class="field-label">Oldest Mouse</label>
+                    <input class="field-input" name="oldest_mouse" placeholder="e.g. 09/05/2026" />
+                  </div>
+
                   <div class="field-group">
                     <label class="field-label">Name <span class="computed-label">@prop - derived from parents</span></label>
                     <input class="field-input" placeholder="Derived on save" readonly />

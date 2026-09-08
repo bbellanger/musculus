@@ -125,11 +125,11 @@ def _log_litter_history(sender, instance, created, **kwargs):
                     pup_count=instance.pups.count() or None,
                 )
 
-@receiver(post_save, sender='colony.Litter')
-def notify_slack_on_litter_created(sender, instance, created, **kwargs):
-    if not created:
-        return # notif on creation only
-
-    send_slack_notification(
-        f"🐭 A new litter of {instance.pups.count()} pups was born in {instance.dob} - cage#{instance.cage}"
-)
+#@receiver(post_save, sender='colony.Litter')
+#def notify_slack_on_litter_created(sender, instance, created, **kwargs):
+#    if not created:
+#        return # notif on creation only
+#
+#    send_slack_notification(
+#        f"🐭 A new litter of {instance.pups.count()} pups was born in {instance.dob} - cage#{instance.cage}"
+#)

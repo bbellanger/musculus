@@ -9,6 +9,9 @@ from django.views.decorators.http import require_GET
 from django.views.decorators.clickjacking import xframe_options_exempt
 from .cage_label import render_cage_label_pdf
 
+# Slack Notification for litter count
+from notifications.slack import send_slack_notification
+
 #Read-only Mouse history import
 from django.http import JsonResponse, HttpResponse
 
@@ -190,15 +193,21 @@ def matingpair_delete(request, pk):
 @login_required
 def litter_create(request):
     if request.method == 'POST':
+        mating_pair = get_object_or_404(MatingPair, pk=request.POST.get('mating_pair'))
         litter = Litter.objects.create(
             mating_pair = get_object_or_404(MatingPair, pk=request.POST.get('mating_pair')),
             dob         = request.POST.get('dob'),
             notes       = request.POST.get('notes', ''),
-            cage        = request.POST.get('cage'),
+           # cage        = request.POST.get('cage'),
+            cage        = mating_pair.cage,
         )
         pup_count = int(request.POST.get('pups') or 0)
         for _ in range(pup_count):
             Mouse.objects.create(litter=litter, dob=litter.dob, cage=litter.cage)
+
+        send_slack_notification(
+        f"🐭 A new litter of {pup_count} pups was born on {litter.dob} - cage#{litter.cage}"
+        )
     return redirect('index')
 
 

@@ -107,6 +107,8 @@ class Mouse(models.Model):
         ('breeder',        'Reserved for breeding'),
         ('vet',            'Under vet surveillance'),
         ('dead',           'Dead'),
+        ('eeg_surg',   'EEG surgery experiment'),
+        ('eeg_rec',    'EEG recording'),
     ]
 
     SEX_CHOICES = {"F": "Female", "M": "Male"}
@@ -391,6 +393,8 @@ class History(models.Model):
         ('breeder',  'Reserved for breeding'),
         ('vet',      'Under vet surveillance'),
         ('dead',     'Dead'),
+        ('eeg_surg',   'EEG surgery experiment'),
+        ('eeg_rec',    'EEG recording'),
     ]
 
     mouse = models.ForeignKey('Mouse', on_delete=models.CASCADE, related_name='history')
