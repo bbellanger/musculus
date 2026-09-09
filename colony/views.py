@@ -12,7 +12,7 @@ from .cage_label import render_cage_label_pdf
 # Slack Notification for litter count
 from notifications.slack import send_slack_notification
 
-#Read-only Mouse history import
+# Read-only Mouse history import
 from django.http import JsonResponse, HttpResponse
 
 

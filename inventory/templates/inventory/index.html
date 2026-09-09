@@ -155,7 +155,13 @@
           {% for order in orders %}
 
           <tr class="data-row" data-id="o{{ order.pk }}">
-            <td><strong>{{ order.name }}</strong></td>
+            <td><span id="order-tick-{{ order.pk }}"
+                    class="order-tick"
+                    style="display:{% if order.all_received %}inline{% else %}none{% endif %}; color:var(--accent); margin-left:4px;"
+                    title="All items received">✓</span>
+              <strong>{{ order.name }}</strong>
+
+            </td>
             <td>{{ order.placed_on|default:"—" }}</td>
             <td>{{ order.requested_by.username|default:"—" }}</td>
             <td>
@@ -204,6 +210,7 @@
                 </div>
                 <div class="form-actions" style="margin-top:10px; margin-bottom:18px;">
                   <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                  <button type="button" class="btn btn-primary btn-sm" onclick="sendSlackNotification(this, {{ order.pk }})">Ready for Ordering</button>
                   <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEdit('o{{ order.pk }}')">Cancel</button>
                 </div>
               </form>
@@ -231,6 +238,9 @@
                       <th>Price</th>
                       <th>Total</th>
                       <th>Comment</th>
+
+                      <th>Status</th>
+                      
                       <th></th>
                     </tr>
                   </thead>
@@ -270,6 +280,27 @@
                         {% endif %}
                       </td>
                       <td style="color:var(--muted); font-size:12px;">{{ oi.comment|default:"" }}</td>
+
+                      <td style="text-align:right;">
+
+                      <form method="post" action="{% url 'inventory:orderitem_status_toggle' oi.pk %}" style="display:inline;">
+
+                        {% csrf_token %}
+                         <button type="button"
+                                 class="btn btn-sm btn-icon {% if oi.status == 'Received' %}btn-success{% else %}btn-secondary{% endif %}"
+                                 data-oi-pk="{{ oi.pk }}"
+                                 data-order-pk="{{ order.pk }}"
+                                 onclick="toggleOrderItemStatus(this)">
+                         {% if oi.status == 'Received' %}
+                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                         {% else %}
+                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+                         {% endif %}
+                         </button>
+                       </form>
+                       
+                       </td>
+
                       <td style="text-align:right;">
                         <form method="post" action="{% url 'inventory:orderitem_delete' oi.pk %}" style="display:inline;">
                           {% csrf_token %}

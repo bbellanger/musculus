@@ -3,6 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Manufacturer, Category, Vendor, Order, OrderItems, Item
 
+# Import for OrderItem toggle switch
+from django.http import JsonResponse
+
+# Slack-bot
+from notifications.slack import send_slack_notification
 
 # ── Shared context helper ──────────────────────────────────────────────────
 
@@ -61,6 +66,18 @@ def order_delete(request, pk):
         order.delete()
     return redirect('inventory:index')
 
+# Slack notification system on ready order
+@login_required
+def order_ready_for_ordering(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    if request.method == 'POST':
+        order.status = 'ready'
+        order.save()
+        send_slack_notification(
+            f"📦 Order '{order.name}' is ready for ordering — total: ${order.total_amount}"
+        )
+        return JsonResponse({'status': order.status})
+    return JsonResponse({'error': 'POST required'}, status=405)
 
 # ── OrderItems CRUD ────────────────────────────────────────────────────────
 
@@ -151,6 +168,15 @@ def orderitem_delete(request, pk):
     if request.method == 'POST':
         oi.delete()
     return redirect('inventory:index')
+
+@login_required
+def orderitem_status_toggle(request, pk):
+    oi = get_object_or_404(OrderItems, pk=pk)
+    if request.method == 'POST':
+        oi.toggle_status()
+        return JsonResponse({'status': oi.status})
+    #return redirect('inventory:index')
+    return JsonResponse({'error': 'POST required'}, status=405)
 
 
 # ── Item CRUD ──────────────────────────────────────────────────────────────

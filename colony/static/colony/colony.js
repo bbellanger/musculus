@@ -129,6 +129,29 @@ function addRow(tbodyId, html) {
 }
 
 // ── Cage detail panel ─────────────────────────────────────────────────────
+//function toggleCageDetail(cagePk) {
+//  const row   = document.getElementById('cage-detail-' + cagePk);
+//  const panel = document.getElementById('cage-panel-'  + cagePk);
+//
+//  if (_openCageDetail.id === cagePk) {
+//    row.style.display = 'none';
+//    _openCageDetail.id = null;
+//    return;
+//  }
+//  if (_openCageDetail.id) {
+//    document.getElementById('cage-detail-' + _openCageDetail.id).style.display = 'none';
+//  }
+//  _openCageDetail.id = cagePk;
+//  row.style.display = '';
+//
+// if (_cageCache[cagePk]) { _renderCagePanel(panel, _cageCache[cagePk]); return; }
+//
+//  fetch(`/cage/${cagePk}/animals/`)
+//    .then(r => r.json())
+//    .then(data => { _cageCache[cagePk] = data; _renderCagePanel(panel, data); })
+//    .catch(() => { panel.innerHTML = '<div class="cage-detail-empty">Could not load animals.</div>'; });
+//}
+
 function toggleCageDetail(cagePk) {
   const row   = document.getElementById('cage-detail-' + cagePk);
   const panel = document.getElementById('cage-panel-'  + cagePk);
@@ -144,11 +167,11 @@ function toggleCageDetail(cagePk) {
   _openCageDetail.id = cagePk;
   row.style.display = '';
 
-  if (_cageCache[cagePk]) { _renderCagePanel(panel, _cageCache[cagePk]); return; }
-
+  // Always fetch fresh — no cache reuse, so cage content changes show up immediately.
+  panel.innerHTML = '<div class="cage-detail-loading">Loading…</div>';
   fetch(`/cage/${cagePk}/animals/`)
     .then(r => r.json())
-    .then(data => { _cageCache[cagePk] = data; _renderCagePanel(panel, data); })
+    .then(data => { _renderCagePanel(panel, data); })
     .catch(() => { panel.innerHTML = '<div class="cage-detail-empty">Could not load animals.</div>'; });
 }
 
@@ -237,4 +260,52 @@ function _renderHistoryPanel(panel, data) {
     <div style="margin-top:6px;font-size:0.72rem;color:var(--hint);">
       Read-only — edit events from the mouse record or Django admin.
     </div>`;
+}
+
+
+// Inventory toggle switch ---------------------------------------------------------------------
+
+function getCookie(name) {
+  const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return match ? match.pop() : '';
+}
+
+async function toggleOrderItemStatus(btn) {
+  const pk = btn.dataset.oiPk;
+  const orderPk = btn.dataset.orderPk;
+  const res = await fetch(`/inventory/orderitem/${pk}/toggle-status/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+  });
+  if (res.ok) {
+    const data = await res.json();
+    btn.classList.toggle('btn-success', data.status === 'Received');
+    btn.classList.toggle('btn-secondary', data.status !== 'Received');
+    btn.innerHTML = data.status === 'Received'
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
+      : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>';
+  }
+}
+
+// Update the general order tick --------------------------------------------------------
+function updateOrderTick(orderPk) {
+  const buttons = document.querySelectorAll(`[data-order-pk="${orderPk}"]`);
+  const tick = document.getElementById('order-tick-' + orderPk);
+  if (!tick || buttons.length === 0) return;
+  const allReceived = Array.from(buttons).every(b => b.classList.contains('btn-success'));
+  tick.style.display = allReceived ? 'inline' : 'none';
+}
+
+// Send slack notification when order is ready ------------------------------------------
+async function sendSlackNotification(btn, orderPk) {
+  const res = await fetch(`/inventory/order/${orderPk}/ready/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+  });
+  if (res.ok) {
+    btn.disabled = true;
+    btn.textContent = 'Notified ✓';
+  } else {
+    alert('Failed to send Slack notification.');
+  }
 }

@@ -35,7 +35,7 @@ class Vendor(models.Model):
         return self.name
 
 class Order(models.Model):
-    STATUS_CHOICES = {'ordered': 'ordered', 'pending': 'pending'}
+    STATUS_CHOICES = {'ordered': 'ordered', 'ready': 'ready for ordering', 'in progress': 'order on progress', 'pending': 'pending'}
     name = models.CharField(max_length=30)
     placed_on = models.DateField(default=Now(), db_comment="default=Now()")
     requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
@@ -48,6 +48,10 @@ class Order(models.Model):
     @property
     def total_amount(self):
         return sum(oi.full_amount or 0 for oi in self.orderitems_set.all())
+
+    def all_received(self):
+        items = self.orderitems_set.all()
+        return items.exists() and all(oi.status == 'Received' for oi in items)
 
 class OrderItems(models.Model):
     UNIT_CHOICES = {"/box": "per box",
@@ -79,6 +83,12 @@ class OrderItems(models.Model):
         "µg": "Micrograms",
         "µL": "Microlitters",
     }
+
+    ORDER_ITEMS_CHOICES = {
+        "Received": "Received",
+        "Waiting": "Waiting to receive",
+    }
+
     item        = models.ForeignKey('Item', on_delete=models.CASCADE, null=False, blank=False)
     size_unit   = models.DecimalField(max_digits=9, decimal_places=2)
     unit        = models.CharField(max_length=15, null=True, blank=True, choices=UNIT_CHOICES)
@@ -88,6 +98,11 @@ class OrderItems(models.Model):
     full_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, db_comment="price x quantity")
     comment     = models.CharField(max_length=250, null=True, blank=True)
     order       = models.ForeignKey(Order,null=True, blank=True, on_delete=models.CASCADE, related_name='orderitems_set')
+    status      = models.CharField(max_length=15, null=True, blank=True, choices=ORDER_ITEMS_CHOICES, default="Waiting")
+
+    def toggle_status(self):
+        self.status = "Waiting" if self.status == "Received" else "Received"
+        self.save()
 
     def __str__(self):
         return self.item.name

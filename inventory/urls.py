@@ -9,9 +9,12 @@ urlpatterns = [
     path('order/create/',                   views.order_create,     name='order_create'),
     path('order/<int:pk>/update/',          views.order_update,     name='order_update'),
     path('order/<int:pk>/delete/',          views.order_delete,     name='order_delete'),
+    # Order - slack notification
+    path('order/<int:pk>/ready/',           views.order_ready_for_ordering, name='order_ready_for_ordering'),
     # Order line items
     path('order/<int:order_pk>/item/add/',  views.orderitem_create, name='orderitem_create'),
     path('orderitem/<int:pk>/delete/',      views.orderitem_delete, name='orderitem_delete'),
+    path('orderitem/<int:pk>/toggle-status/', views.orderitem_status_toggle, name='orderitem_status_toggle'),
     # Items catalog
     path('item/create/',                    views.item_create,      name='item_create'),
     path('item/<int:pk>/update/',           views.item_update,      name='item_update'),
