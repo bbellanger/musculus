@@ -37,7 +37,7 @@ class Vendor(models.Model):
 class Order(models.Model):
     STATUS_CHOICES = {'ordered': 'ordered', 'ready': 'ready for ordering', 'in progress': 'order on progress', 'pending': 'pending'}
     name = models.CharField(max_length=30)
-    placed_on = models.DateField(default=Now(), db_comment="default=Now()")
+    placed_on = models.DateField(null=True, blank=True, default=Now(), db_comment="default=Now()")
     requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending')
     #OrderItems = models.ForeignKey('OrderItems', on_delete=models.CASCADE, null=False, blank=False)

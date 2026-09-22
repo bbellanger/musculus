@@ -363,6 +363,13 @@ class Cage(models.Model):
                 labels.add(mouse.mouse_line.name)
         return sorted(labels)
 
+    @property
+    def oldest_mouse(self):
+        """ Return the oldest mouse in the cage """
+        mouse = self.mice.order_by('dob').first()
+        #return self.mice.order_by('dob').first()
+        return mouse.dob if mouse else None
+
 # ------------------------- History model -------------------------#
 class History(models.Model):
     """

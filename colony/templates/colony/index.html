@@ -438,7 +438,7 @@
 
           <!-- New cage form row -->
           <tr class="edit-row" id="edit-cage-new">
-            <td colspan="6">
+            <td colspan="9">
               <form method="post" action="{% url 'cage_create' %}">
                 {% csrf_token %}
                 <div class="form-grid">
@@ -461,8 +461,8 @@
                   </div>
 
                   <div class="field-group">
-                    <label class="field-label">Oldest Mouse</label>
-                    <input class="field-input" name="oldest_mouse" placeholder="e.g. 09/05/2026" />
+                    <label class="field-label">Oldest Mouse <span class="computed-label">auto</span></label>
+                    <input class="field-input" placeholder="Auto-generated" readonly />
                   </div>
 
                   <div class="field-group">
@@ -491,6 +491,12 @@
             <td class="mono">
               {% if cage.mating_pair %}{{ cage.mating_pair.male.tag }} x {{ cage.mating_pair.female.tag }}{% else %}-{% endif %}
             </td>
+
+            <td>
+              {{ cage.oldest_mouse }}
+            </td>
+
+
             <td>
               {% if cage.name %}
                 <span class="derived-chip"><span class="dot"></span>{{ cage.name }}</span>
@@ -498,6 +504,8 @@
                 <span class="derived-chip" style="color:var(--hint)">- no pair</span>
               {% endif %}
             </td>
+
+
             <td>
               <span class="derived-chip">{{ cage.mice.count }} mice</span>
             </td>
