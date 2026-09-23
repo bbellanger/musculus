@@ -20,14 +20,15 @@ from django.http import JsonResponse, HttpResponse
 
 def _base_context():
     return {
-        'mice':         Mouse.objects.select_related(
+        'mice':           Mouse.objects.select_related(
                             'mouse_line', 'coat_color', 'protocol', 'owner', 'cage', 'litter'
                         ).prefetch_related('genotype_entries__tag').all(),
         #'cages':        Cage.objects.select_related(Prefetch('mice', queryset=Mouse.objects.order_by('sex', 'tag'))).select_related('mating_pair__male', 'mating_pair__female').all(),
         #'cages': Cage.objects.prefetch_related(Prefetch('mice', queryset=Mouse.objects.order_by('sex', 'tag'))).select_related('mating_pair__male', 'mating_pair__female').all(),
-        'cages': Cage.objects.prefetch_related(Prefetch('mice', queryset=Mouse.objects.exclude(status='dead').order_by('sex', 'tag'))).select_related('mating_pair__male', 'mating_pair__female').all(),
-        'mating_pairs': MatingPair.objects.select_related('male', 'female').all(),
-        'litters':      Litter.objects.select_related(
+        'cages':          Cage.objects.prefetch_related(Prefetch('mice', queryset=Mouse.objects.exclude(status='dead').order_by('sex', 'tag'))).select_related('mating_pair__male', 'mating_pair__female').all(),
+        'mating_pairs':   MatingPair.objects.select_related('male', 'female').all(),
+        'status_choices': Mouse.STATUS_CHOICES,
+        'litters':        Litter.objects.select_related(
                             'mating_pair__male', 'mating_pair__female', 'mating_pair__cage'
                         ).prefetch_related('pups').all(),
         'mouse_lines':    MouseLine.objects.all(),

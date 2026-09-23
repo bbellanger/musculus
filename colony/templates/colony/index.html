@@ -57,15 +57,25 @@
       </select>
       <select class="filter-select" onchange="filterTableByUser('mouse-tbody', this.value)">
         <option value="">All Users</option>
+        {% for u in users %}
+          <option value="{{ u.username }}"{% if user.username == u.username %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+        {% endfor %}
+<!--
         <option value="bbellanger">bbellanger</option>
         <option value="hkaplan">hkaplan</option>
+-->
       </select>
       <select class="filter-select" onchange="filterTableByStatus(this.value)">
         <option value="">All statuses</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if mouse.status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+<!--
         <option value="alive">Alive</option>
         <option value="breeder">Reserved for breeding</option>
         <option value="vet">Under vet surveillance</option>
         <option value="dead">Dead</option>
+-->
       </select>
     </div>
 
@@ -348,10 +358,19 @@
                   <div class="field-group">
                     <label class="field-label">Status</label>
                     <select class="field-select" name="status">
+
+<!--
                       <option value="alive"   {% if mouse.status == 'alive'   %}selected{% endif %}>Alive</option>
                       <option value="breeder" {% if mouse.status == 'breeder' %}selected{% endif %}>Reserved for breeding</option>
                       <option value="vet"     {% if mouse.status == 'vet'     %}selected{% endif %}>Under vet surveillance</option>
                       <option value="dead"    {% if mouse.status == 'dead'    %}selected{% endif %}>Dead</option>
+                    </select>
+
+-->
+
+                    {% for value, label in status_choices %}
+                      <option value="{{ value }}" {% if mouse.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
                     </select>
                   </div>
                   <!-- Genotypes inline -->
