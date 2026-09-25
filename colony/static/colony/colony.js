@@ -189,6 +189,16 @@ function _renderCagePanel(panel, data) {
       <td>${m.mouse_line}</td><td>${m.coat_color}</td>
       <td>${m.genotypes}</td><td>${m.phenotype}</td>
       <td>${m.owner}</td><td>${m.protocol}</td>
+            <td><button class="btn btn-secondary btn-sm btn-icon btn-fly"
+                  onclick="event.stopPropagation(); goToMouse('${m.pk}')"
+                  title="Go to ${m.tag} in the mouse tab">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round" style="vertical-align:-2px;">
+                       <path d="M22 2L11 13"/>
+                       <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
+                    </svg>
+            </button></td>
     </tr>`;
   }).join('');
   panel.innerHTML = `
@@ -229,7 +239,7 @@ function toggleMouseHistory(mousePk) {
 
 function _renderHistoryPanel(panel, data) {
   if (!data.history || data.history.length === 0) {
-    panel.innerHTML = `<h4>History — ${data.mouse}</h4>
+    panel.innerHTML = `<h4>History — ${data.mouse} | UUID - ${data.uuid}</h4>
       <div class="history-empty">No history events recorded yet.</div>`;
     return;
   }
@@ -252,7 +262,7 @@ function _renderHistoryPanel(panel, data) {
     </tr>`;
   }).join('');
   panel.innerHTML = `
-    <h4>History — ${data.mouse}</h4>
+    <h4>History — ${data.mouse} | UUID - ${data.uuid}</h4>
     <table class="history-table">
       <thead><tr><th>Date</th><th>Event</th><th>Details</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -308,4 +318,27 @@ async function sendSlackNotification(btn, orderPk) {
   } else {
     alert('Failed to send Slack notification.');
   }
+}
+
+// Jump to a corresponding mouse by selecting it in cage
+function goToMouse(mousePk) {
+  // 1. Switch to the mouse tab. Replace this with however your tabs switch,
+  //    e.g. showTab('mouse') or document.querySelector('[data-tab="mouse"]').click()
+  // showTab('mouse');
+  const mouseTabBtn = document.querySelector(`[onclick*="switchTab('mouse'"]`);
+  switchTab('mouse', mouseTabBtn);
+
+  // 2. Reset every filter so the row isn't hidden.
+  //    Dispatching the event re-runs your inline oninput/onchange handlers.
+  document.querySelectorAll('#mouse-toolbar input, #mouse-toolbar select').forEach(el => {
+    el.value = '';
+    el.dispatchEvent(new Event(el.tagName === 'INPUT' ? 'input' : 'change'));
+  });
+
+  // 3. Find the row, scroll to it and flash it
+  const row = document.querySelector(`#mouse-tbody tr[data-mouse-id="${mousePk}"]`);
+  if (!row) { alert('Mouse not found in table'); return; }
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  row.classList.add('row-highlight');
+  setTimeout(() => row.classList.remove('row-highlight'), 2500);
 }

@@ -274,7 +274,7 @@ def mouse_history(request, pk):
             'notes': e.notes,
         })
 
-    return JsonResponse({'mouse': mouse.tag, 'history': data})
+    return JsonResponse({'mouse': mouse.tag,'uuid': str(mouse.uuid), 'history': data})
 
 # ── Cage content READONLY ────────────────────────────────────────────────────────────
 
@@ -301,7 +301,7 @@ def cage_animals(request, pk):
             'sex':                       m.get_sex_display() if m.sex else '-',
             'alt_id':                    m.alt_id or '-',
             'dob':                       str(m.dob) if m.dob else '-',
-            'wean_date':  str(m.wean_date) if m.dob else '—',
+            'wean_date':  str(m.wean_date) if m.wean_date else '—',
             'mouse_line': str(m.mouse_line) if (m.mouse_line and not genotypes) else '—',
             'coat_color': str(m.coat_color) if m.coat_color else '—',
             'phenotype':  m.phenotype or '—',

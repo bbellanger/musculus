@@ -164,6 +164,23 @@ header .sep { flex: 1; }
 .btn-sm         { font-size: 12px; padding: 4px 10px; }
 .btn-icon       { padding: 4px 7px; font-size: 13px; }  /* tighter so it fits in narrow col */
 
+/* -- Row search higlight -- */
+.row-highlight td {
+  background: rgba(255, 210, 0, 0.35) !important;
+  transition: background 0.4s;
+}
+
+.btn-fly svg {
+  transition: transform 0.25s ease;
+}
+.btn-fly:hover svg {
+  transform: translate(3px, -3px) rotate(-8deg);
+}
+.btn-fly:active svg {
+  transform: translate(8px, -8px) scale(0.8);
+  opacity: 0.6;
+}
+
 /* ── Card ── */
 .card {
   background: var(--surface);

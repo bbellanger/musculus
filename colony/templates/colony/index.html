@@ -15,6 +15,14 @@
   <a class="logo" href="{% url 'index' %}">mus<span>culus</span></a>
   <div class="sep"></div>
   <span class="header-tag">{{ request.user.username }} -- Colony Records | <a href="/inventory/">Inventory</a></span>
+  {% if user.is_authenticated %}
+    <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary btn-sm">Log Out</button>
+    </form>
+  {% else %}
+    <a href="{% url 'login' %}">Log In</a>
+  {% endif %}
 </header>
 
 <div class="wrapper">
@@ -45,7 +53,7 @@
       </div>
     </div>
 
-    <div class="toolbar">
+    <div class="toolbar" id="mouse-toolbar">
       <div class="search-box">
         <span class="search-icon"></span>
         <input type="text" placeholder="Search tag, phenotype..." oninput="filterTable('mouse-tbody', this.value)" />
@@ -60,22 +68,12 @@
         {% for u in users %}
           <option value="{{ u.username }}"{% if user.username == u.username %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
         {% endfor %}
-<!--
-        <option value="bbellanger">bbellanger</option>
-        <option value="hkaplan">hkaplan</option>
--->
       </select>
       <select class="filter-select" onchange="filterTableByStatus(this.value)">
         <option value="">All statuses</option>
           {% for value, label in status_choices %}
             <option value="{{ value }}" {% if mouse.status == value %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
-<!--
-        <option value="alive">Alive</option>
-        <option value="breeder">Reserved for breeding</option>
-        <option value="vet">Under vet surveillance</option>
-        <option value="dead">Dead</option>
--->
       </select>
     </div>
 
@@ -209,6 +207,7 @@
           {% for mouse in mice %}
           <tr class="data-row"
               data-id="m{{ mouse.pk }}"
+              data-mouse-id="{{ mouse.pk }}"
               data-sex="{{ mouse.sex }}"
               data-owner="{{ mouse.owner.username|default:'' }}"
               data-status="{{ mouse.status|default:'alive' }}"
@@ -358,16 +357,6 @@
                   <div class="field-group">
                     <label class="field-label">Status</label>
                     <select class="field-select" name="status">
-
-<!--
-                      <option value="alive"   {% if mouse.status == 'alive'   %}selected{% endif %}>Alive</option>
-                      <option value="breeder" {% if mouse.status == 'breeder' %}selected{% endif %}>Reserved for breeding</option>
-                      <option value="vet"     {% if mouse.status == 'vet'     %}selected{% endif %}>Under vet surveillance</option>
-                      <option value="dead"    {% if mouse.status == 'dead'    %}selected{% endif %}>Dead</option>
-                    </select>
-
--->
-
                     {% for value, label in status_choices %}
                       <option value="{{ value }}" {% if mouse.status == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
@@ -530,10 +519,6 @@
             </td>
 
             <td>
-              <!-- <span class="derived-chip">{% if cage.mating_pair %}{{ cage.mating_pair.male.mouse_line }} {% endif %} </span> -->
-
-                <!-- {% for line in cage.mice.all|dictsort:"mouse_line"|dictsortreversed:"mouse_line" %}
-                {% endfor %}-->
                 {% for line in cage.unique_mouse_lines %}
                   <span class="derived-chip">{{ line }}</span>
                 {% empty %}
@@ -572,7 +557,7 @@
 
           <!-- Animals detail panel (hidden by default, populated by JS) -->
           <tr id="cage-detail-{{ cage.pk }}" style="display:none;">
-            <td colspan="6" style="padding:0;">
+            <td colspan="9" style="padding:0;">
               <div id="cage-panel-{{ cage.pk }}" class="cage-detail-panel">
                 <div class="cage-detail-loading">Loading…</div>
               </div>

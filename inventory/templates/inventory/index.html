@@ -84,6 +84,14 @@
   <a class="logo" href="{% url 'index' %}">mus<span>culus</span></a>
   <div class="sep"></div>
   <span class="header-tag">{{ request.user.username }} -- Inventory Records | <a href="/">Colony</a></span>
+  {% if user.is_authenticated %}
+    <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary btn-sm">Log Out</button>
+    </form>
+  {% else %}
+    <a href="{% url 'login' %}">Log In</a>
+  {% endif %}
 </header>
 
 <div class="wrapper">
