@@ -342,3 +342,33 @@ function goToMouse(mousePk) {
   row.classList.add('row-highlight');
   setTimeout(() => row.classList.remove('row-highlight'), 2500);
 }
+
+
+// ── Open a cage from a scanned QR code (/?cage=<pk>) ───────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Read ?cage=28 from the URL. Normal visits have no parameter: stop here.
+  const cagePk = new URLSearchParams(window.location.search).get('cage');
+  if (!cagePk) return;
+  // Switch to the Cage tab (same pattern as goToMouse).
+  const cageTabBtn = document.querySelector(`[onclick*="switchTab('cage'"]`);
+  switchTab('cage', cageTabBtn);
+  // Clear the cage search box so the row can't be hidden by a filter.
+  document.querySelectorAll('#tab-cage .search-box input').forEach(el => {
+    el.value = '';
+    el.dispatchEvent(new Event('input'));   // re-runs filterTable('cage-tbody', '')
+  });
+  // Find the cage's row.
+  const row = document.querySelector(`#cage-tbody tr[data-id="c${cagePk}"]`);
+  if (!row) {
+    alert('Cage not found');
+    return;
+  }
+  // Open the animal panel, same as clicking the row.
+  toggleCageDetail(cagePk);
+  // Scroll to the row and flash it.
+  row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  row.classList.add('row-highlight');
+  setTimeout(() => row.classList.remove('row-highlight'), 2500);
+  // Remove ?cage= from the address bar so a refresh doesn't reopen it.
+  history.replaceState(null, '', window.location.pathname);
+});

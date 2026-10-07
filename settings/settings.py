@@ -144,3 +144,7 @@ LOGIN_URL = '/login/'
 LOGOUT_REDIRECT_URL = '/login/'
 #LOGIN_REDIRECT_URL = '/dashboard/'
 LOGIN_REDIRECT_URL = '/'
+
+
+# SITE URL
+SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')

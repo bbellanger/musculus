@@ -18,6 +18,11 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch, cm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Table, TableStyle
 
+# qrCode
+import qrcode
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Table, TableStyle, Image
+from django.conf import settings
+
 LABEL_WIDTH = 4 * inch
 LABEL_HEIGHT = 6 * inch
 MARGIN_X = 1.5 * cm  # half of the earlier 3cm/2cm version
@@ -30,6 +35,22 @@ def _p(text, style):
     doc.build() with a parser error. Escape everything before wrapping."""
     return Paragraph(xml_escape(str(text)), style)
 
+def make_qr(url: str) -> io.BytesIO:
+    """Returns a PNG of a QR code for `url`, held in memory."""
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return buf
 
 def _genotype_summary(mouse):
     """'Cre:HOM, fl/fl:HET' style summary from the MouseGenotype through model.
@@ -85,6 +106,9 @@ def render_cage_label_pdf(cage):
         "HeaderCell", parent=cell_style, fontName="Helvetica-Bold", textColor=colors.white,
     )
 
+    url = f"{settings.SITE_URL}/c/{cage.cage_id}/"
+    qr_image = Image(make_qr(url), width=1 * inch, height=1 * inch)
+
     story = [
         _p(f"Cage {cage.cage_id}", header_style),
         _p(f"Location: {cage.cage_location}", sub_style),
@@ -129,6 +153,7 @@ def render_cage_label_pdf(cage):
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f2f2f2")]),
     ]))
     story.append(table)
+    story.append(qr_image)
 
     doc.build(story)
     buf.seek(0)

@@ -16,6 +16,8 @@ urlpatterns = [
     path('cage/<int:pk>/update/', views.cage_update,    name='cage_update'),
     path('cage/<int:pk>/delete/', views.cage_delete,    name='cage_delete'),
     path('cage/<int:pk>/animals/', views.cage_animals, name='cage_animals'),
+    # Cage qrCode
+    path('c/<str:cage_id>/', views.cage_scan, name='cage_scan'),
 
     # Thermal label generation
     path('cages/<int:pk>/label.pdf', views.cage_label_pdf, name='cage_label_pdf'),

@@ -154,6 +154,10 @@ def cage_delete(request, pk):
         cage.delete()
     return redirect('index')
 
+@login_required
+def cage_scan(request, cage_id):
+    cage = get_object_or_404(Cage, cage_id=cage_id)
+    return redirect(f"/?cage={cage.pk}")
 
 # ── MatingPair CRUD ────────────────────────────────────────────────────────
 
