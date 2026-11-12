@@ -104,6 +104,7 @@ class Mouse(models.Model):
 
     STATUS_CHOICES = [
         ('alive',          'Alive'),
+        ('wanted',         'Lost in translation'),
         ('breeder',        'Reserved for breeding'),
         ('vet',            'Under vet surveillance'),
         ('dead',           'Dead'),
@@ -393,10 +394,12 @@ class History(models.Model):
         ('injury',     'Injury'),
         ('death',      'Death'),
         ('other',      'Other'),
+        ('wanted',   'Lost in translation'),
     ]
 
     STATUS_CHOICES = [
         ('alive',    'Alive'),
+        ('wanted',   'Lost in translation'),
         ('breeder',  'Reserved for breeding'),
         ('vet',      'Under vet surveillance'),
         ('dead',     'Dead'),
