@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Print label — Cage {{ cage.cage_id }}</title>
+</head>
+<body style="margin:0;">
+  <iframe id="labelFrame"
+          src="{% url 'cage_label_pdf' cage.pk %}"
+          style="width:100%; height:100vh; border:none;"></iframe>
+
+  <script>
+    var frame = document.getElementById('labelFrame');
+    frame.addEventListener('load', function () {
+      setTimeout(function () {
+        frame.contentWindow.print();
+      }, 300);
+    });
+  </script>
+</body>
+</html>

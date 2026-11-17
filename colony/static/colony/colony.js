@@ -169,7 +169,7 @@ function toggleCageDetail(cagePk) {
 
   // Always fetch fresh — no cache reuse, so cage content changes show up immediately.
   panel.innerHTML = '<div class="cage-detail-loading">Loading…</div>';
-  fetch(`/cage/${cagePk}/animals/`)
+  fetch(`${URL_ROOT}cage/${cagePk}/animals/`)
     .then(r => r.json())
     .then(data => { _renderCagePanel(panel, data); })
     .catch(() => { panel.innerHTML = '<div class="cage-detail-empty">Could not load animals.</div>'; });
@@ -231,7 +231,7 @@ function toggleMouseHistory(mousePk) {
 
   if (_historyCache[mousePk]) { _renderHistoryPanel(panel, _historyCache[mousePk]); return; }
 
-  fetch(`/mouse/${mousePk}/history/`)
+  fetch(`${URL_ROOT}mouse/${mousePk}/history/`)
     .then(r => r.json())
     .then(data => { _historyCache[mousePk] = data; _renderHistoryPanel(panel, data); })
     .catch(() => { panel.innerHTML = '<div class="history-empty">Could not load history.</div>'; });
@@ -283,7 +283,7 @@ function getCookie(name) {
 async function toggleOrderItemStatus(btn) {
   const pk = btn.dataset.oiPk;
   const orderPk = btn.dataset.orderPk;
-  const res = await fetch(`/inventory/orderitem/${pk}/toggle-status/`, {
+  const res = await fetch(`${URL_ROOT}inventory/orderitem/${pk}/toggle-status/`, {
     method: 'POST',
     headers: { 'X-CSRFToken': getCookie('csrftoken') },
   });
@@ -307,8 +307,8 @@ function updateOrderTick(orderPk) {
 }
 
 // Send slack notification when order is ready ------------------------------------------
-async function sendSlackNotification(btn, orderPk) {
-  const res = await fetch(`/inventory/order/${orderPk}/ready/`, {
+async function sendSlackNotification(btn) {
+  const res = await fetch(btn.dataset.url, {
     method: 'POST',
     headers: { 'X-CSRFToken': getCookie('csrftoken') },
   });
@@ -316,7 +316,7 @@ async function sendSlackNotification(btn, orderPk) {
     btn.disabled = true;
     btn.textContent = 'Notified ✓';
   } else {
-    alert('Failed to send Slack notification.');
+    alert('Failed to send Slack notification (HTTP ${res.status}).');
   }
 }
 

@@ -10,3 +10,4 @@ slack_sdk==3.44.0
 sqlparse==0.5.5
 wheel==0.48.0
 whitenoise==6.12.0
+qrcode[pil]==8.2

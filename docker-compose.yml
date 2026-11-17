@@ -11,14 +11,14 @@ services:
 
   nginx:
     image: nginx:alpine
-    restart: no
+    restart: unless-stopped        # unquoted `no` is read as a boolean in YAML; use "no" or this
     ports:
-      - "8001:80"
+      - "127.0.0.1:8001:80"        # only reachable from the host itself, not the internet
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./staticfiles:/app/staticfiles
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./staticfiles:/app/staticfiles:ro
     depends_on:
       - web
 
 volumes:
-    db_data:
+  db_data:

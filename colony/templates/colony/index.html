@@ -14,7 +14,7 @@
 <header>
   <a class="logo" href="{% url 'index' %}">mus<span>culus</span></a>
   <div class="sep"></div>
-  <span class="header-tag">{{ request.user.username }} -- Colony Records | <a href="/inventory/">Inventory</a></span>
+  <span class="header-tag">{{ request.user.username }} -- Colony Records | <a href="{% url 'inventory:index' %}">Inventory</a></span>
   {% if user.is_authenticated %}
     <form method="POST" action="{% url 'logout' %}">
         {% csrf_token %}
@@ -971,6 +971,7 @@
 <script id="genotype-tag-data" type="application/json">
   [{% for gt in genotype_tags %}{"pk": {{ gt.pk }}, "label": "{{ gt.label }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
 </script>
+<script>const URL_ROOT = "{% url 'index' %}";</script>
 <script src="{% static 'colony/colony.js' %}"></script>
 </body>
 </html>

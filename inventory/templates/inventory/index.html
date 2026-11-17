@@ -83,7 +83,7 @@
 <header>
   <a class="logo" href="{% url 'index' %}">mus<span>culus</span></a>
   <div class="sep"></div>
-  <span class="header-tag">{{ request.user.username }} -- Inventory Records | <a href="/">Colony</a></span>
+  <span class="header-tag">{{ request.user.username }} -- Inventory Records | <a href="{% url 'index'  %}">Colony</a></span>
   {% if user.is_authenticated %}
     <form method="POST" action="{% url 'logout' %}">
         {% csrf_token %}
@@ -218,7 +218,9 @@
                 </div>
                 <div class="form-actions" style="margin-top:10px; margin-bottom:18px;">
                   <button type="submit" class="btn btn-primary btn-sm">Save</button>
-                  <button type="button" class="btn btn-primary btn-sm" onclick="sendSlackNotification(this, {{ order.pk }})">Ready for Ordering</button>
+                  <button type="button" class="btn btn-primary btn-sm"
+                          data-url="{% url 'inventory:order_ready_for_ordering' order.pk %}"
+                          onclick="sendSlackNotification(this)">Ready for Ordering</button>
                   <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEdit('o{{ order.pk }}')">Cancel</button>
                 </div>
               </form>
@@ -654,6 +656,7 @@
 
 </div><!-- /wrapper -->
 
+<script>const URL_ROOT = "{% url 'index' %}";</script>
 <script src="{% static 'colony/colony.js' %}"></script>
 <script>
 // ── Auto-populate item fields from selected Item's data attributes ──────────

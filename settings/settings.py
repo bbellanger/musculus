@@ -18,7 +18,7 @@ load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+FORCE_SCRIPT_NAME = "/musculus"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -129,7 +129,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/musculus/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'colony' / 'static']
 
@@ -140,11 +140,21 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # Login parrameters
-LOGIN_URL = '/login/'
-LOGOUT_REDIRECT_URL = '/login/'
+LOGIN_URL = '/musculus/login/'
+LOGOUT_REDIRECT_URL = '/musculus/login/'
 #LOGIN_REDIRECT_URL = '/dashboard/'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/musculus/'
 
 
 # SITE URL
 SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
+
+
+# Trust the proxy's "this was HTTPS" header
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_PATH = "/musculus"   # keeps cookies separate from other apps on the domain
+CSRF_COOKIE_PATH = "/musculus"
